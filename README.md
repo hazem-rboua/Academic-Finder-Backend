@@ -8,6 +8,7 @@ A Laravel-based API backend for Academic Finder with admin/company authenticatio
 - **User Types**: Admin and Company users with role-based access control
 - **Invitation System**: Secure invitation links with unique tokens for company registration
 - **Admin Panel**: Complete company management (enable/disable, view, delete)
+- **Multilanguage Support**: Arabic and English support for all API responses
 - **Telescope Monitoring**: Real-time application monitoring (admin-only access)
 - **API Documentation**: Auto-generated Swagger/OpenAPI documentation
 - **Rate Limiting**: Configurable API rate limiting for security
@@ -169,6 +170,32 @@ Authorization: Bearer {your-token}
 
 - **Admin tokens**: Have `admin` ability
 - **Company tokens**: Have `company` ability
+
+## Multilanguage Support
+
+The API supports multiple languages (Arabic and English). To specify the language, include the `Accept-Language` header in your requests:
+
+```
+Accept-Language: ar
+```
+
+or
+
+```
+Accept-Language: en
+```
+
+Alternatively, you can use the `lang` query parameter:
+
+```
+GET /api/auth/login?lang=ar
+```
+
+**Supported Languages:**
+- `en` - English (default)
+- `ar` - Arabic (العربية)
+
+All API responses, validation messages, and error messages will be returned in the requested language.
 
 ## Testing
 

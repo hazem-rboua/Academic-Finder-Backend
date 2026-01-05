@@ -70,7 +70,7 @@ class ProfileController extends Controller
         }
 
         return response()->json([
-            'message' => 'Profile updated successfully',
+            'message' => __('messages.profile_updated'),
             'user' => $user->fresh()->load('company'),
         ]);
     }

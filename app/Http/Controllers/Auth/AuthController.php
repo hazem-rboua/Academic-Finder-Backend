@@ -50,20 +50,20 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'email' => [__('messages.invalid_credentials')],
             ]);
         }
 
         if (!$user->is_active) {
             return response()->json([
-                'message' => 'Your account has been deactivated. Please contact support.',
+                'message' => __('messages.account_deactivated'),
             ], 403);
         }
 
         // Check if company is enabled (for company users)
         if ($user->isCompany() && $user->company && !$user->company->is_enabled) {
             return response()->json([
-                'message' => 'Your company account has been disabled. Please contact support.',
+                'message' => __('messages.company_disabled'),
             ], 403);
         }
 
@@ -92,7 +92,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Successfully logged out',
+            'message' => __('messages.logout_success'),
         ]);
     }
 

@@ -45,12 +45,12 @@ class InvitationController extends Controller
 
         if (!$invitation) {
             return response()->json([
-                'message' => 'Invalid or expired invitation token.',
+                'message' => __('messages.invitation_invalid'),
             ], 400);
         }
 
         return response()->json([
-            'message' => 'Token is valid',
+            'message' => __('messages.invitation_valid'),
             'email' => $invitation->email,
             'expires_at' => $invitation->expires_at,
         ]);
@@ -88,21 +88,21 @@ class InvitationController extends Controller
 
         if (!$invitation) {
             return response()->json([
-                'message' => 'Invalid or expired invitation token.',
+                'message' => __('messages.invitation_invalid'),
             ], 400);
         }
 
         // Check if email matches
         if ($invitation->email !== $request->email) {
             return response()->json([
-                'message' => 'Email does not match the invitation.',
+                'message' => __('messages.email_mismatch'),
             ], 400);
         }
 
         // Check if user already exists
         if (User::where('email', $request->email)->exists()) {
             return response()->json([
-                'message' => 'A user with this email already exists.',
+                'message' => __('messages.user_exists'),
             ], 422);
         }
 
@@ -136,7 +136,7 @@ class InvitationController extends Controller
             $token = $user->createToken('auth-token', ['company'])->plainTextToken;
 
             return response()->json([
-                'message' => 'Registration successful',
+                'message' => __('messages.registration_success'),
                 'user' => $user->load('company'),
                 'token' => $token,
                 'token_type' => 'Bearer',
@@ -146,7 +146,7 @@ class InvitationController extends Controller
             DB::rollBack();
             
             return response()->json([
-                'message' => 'Registration failed. Please try again.',
+                'message' => __('messages.registration_failed'),
                 'error' => $e->getMessage(),
             ], 500);
         }

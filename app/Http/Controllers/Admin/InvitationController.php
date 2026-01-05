@@ -72,7 +72,7 @@ class InvitationController extends Controller
         // Check if user already exists
         if (User::where('email', $request->email)->exists()) {
             return response()->json([
-                'message' => 'A user with this email already exists.',
+                'message' => __('messages.user_exists'),
             ], 422);
         }
 
@@ -84,7 +84,7 @@ class InvitationController extends Controller
 
         if ($existingInvitation) {
             return response()->json([
-                'message' => 'An active invitation for this email already exists.',
+                'message' => __('messages.invitation_exists'),
             ], 422);
         }
 
@@ -94,7 +94,7 @@ class InvitationController extends Controller
         );
 
         return response()->json([
-            'message' => 'Invitation sent successfully',
+            'message' => __('messages.invitation_sent'),
             'invitation' => $invitation,
         ], 201);
     }
@@ -119,7 +119,7 @@ class InvitationController extends Controller
         $this->invitationService->cancelInvitation($invitation);
 
         return response()->json([
-            'message' => 'Invitation cancelled successfully',
+            'message' => __('messages.invitation_cancelled'),
         ]);
     }
 }

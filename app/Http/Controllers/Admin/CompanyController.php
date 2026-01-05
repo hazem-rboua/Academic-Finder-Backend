@@ -92,7 +92,7 @@ class CompanyController extends Controller
         $company = $this->companyService->enableCompany($company);
 
         return response()->json([
-            'message' => 'Company enabled successfully',
+            'message' => __('messages.company_enabled'),
             'company' => $company,
         ]);
     }
@@ -117,7 +117,7 @@ class CompanyController extends Controller
         $company = $this->companyService->disableCompany($company, $request->user());
 
         return response()->json([
-            'message' => 'Company disabled successfully',
+            'message' => __('messages.company_disabled'),
             'company' => $company,
         ]);
     }
@@ -142,7 +142,7 @@ class CompanyController extends Controller
         $company->delete();
 
         return response()->json([
-            'message' => 'Company deleted successfully',
+            'message' => __('messages.company_deleted'),
         ]);
     }
 }
