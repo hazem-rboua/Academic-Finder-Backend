@@ -33,7 +33,7 @@ php artisan migrate --force
 
 # Generate Swagger documentation
 echo "📚 Generating API documentation..."
-php artisan l5-swagger:generate
+php artisan swagger:generate-docs
 
 # Set proper permissions
 echo "🔐 Setting proper permissions..."

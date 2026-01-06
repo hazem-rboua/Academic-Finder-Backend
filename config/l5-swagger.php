@@ -44,8 +44,7 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
-                    base_path('app'),
-                    base_path('routes'),
+                    base_path('app/Http/Controllers'),
                 ],
             ],
         ],
@@ -109,16 +108,7 @@ return [
              * @link https://zircote.github.io/swagger-php/reference/processors.html
              */
             'default_processors_configuration' => [
-            /** Example */
-            /**
-             * 'operationId.hash' => true,
-             * 'pathFilter' => [
-             * 'tags' => [
-             * '/pets/',
-             * '/store/',
-             * ],
-             * ],.
-             */
+                'pathFilter.allowedPaths' => null,
             ],
 
             /**
@@ -164,6 +154,11 @@ return [
              * By default the spec will be in version 3.0.0
              */
             'open_api_spec_version' => env('L5_SWAGGER_OPEN_API_SPEC_VERSION', \L5Swagger\Generator::OPEN_API_DEFAULT_SPEC_VERSION),
+            
+            /**
+             * Validate the generated OpenAPI spec
+             */
+            'validate' => env('L5_SWAGGER_VALIDATE', false),
         ],
 
         /*
