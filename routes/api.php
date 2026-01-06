@@ -7,23 +7,6 @@ use App\Http\Controllers\Company\ProfileController;
 use App\Http\Controllers\InvitationController;
 use Illuminate\Support\Facades\Route;
 
-/**
- * @OA\Info(
- *     title="Academic Finder Backend API",
- *     version="1.0.0",
- *     description="API documentation for Academic Finder Backend",
- *     @OA\Contact(
- *         email="support@academicfinder.com"
- *     )
- * )
- * @OA\SecurityScheme(
- *     securityScheme="sanctum",
- *     type="http",
- *     scheme="bearer",
- *     bearerFormat="JWT"
- * )
- */
-
 // Public routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
