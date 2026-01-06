@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->enum('user_type', ['admin', 'company'])->after('email');
             $table->boolean('is_active')->default(true)->after('user_type');
-            $table->foreignId('company_id')->nullable()->after('is_active')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('company_id')->nullable()->after('is_active');
             $table->softDeletes();
         });
     }

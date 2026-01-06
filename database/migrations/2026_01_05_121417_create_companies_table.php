@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->boolean('is_enabled')->default(true);
             $table->timestamp('disabled_at')->nullable();
-            $table->foreignId('disabled_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->unsignedBigInteger('disabled_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
