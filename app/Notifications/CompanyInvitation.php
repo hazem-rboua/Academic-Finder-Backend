@@ -7,9 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CompanyInvitation extends Notification implements ShouldQueue
+class CompanyInvitation extends Notification
 {
-    use Queueable;
+    // Removed ShouldQueue to send emails immediately
+    // use Queueable;
 
     /**
      * Create a new notification instance.
