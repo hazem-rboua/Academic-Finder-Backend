@@ -9,34 +9,32 @@ use App\Models\User;
 use App\Services\InvitationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Tag(
- *     name="Admin - Invitations",
- *     description="API endpoints for managing invitations (Admin only)"
- * )
- */
+#[OA\Tag(name: "Admin - Invitations", description: "API endpoints for managing invitations (Admin only)")]
 class InvitationController extends Controller
 {
     public function __construct(private InvitationService $invitationService)
     {
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/admin/invitations",
-     *     summary="List all invitations",
-     *     tags={"Admin - Invitations"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="status",
-     *         in="query",
-     *         description="Filter by status",
-     *         @OA\Schema(type="string", enum={"pending", "accepted", "expired", "cancelled"})
-     *     ),
-     *     @OA\Response(response=200, description="List of invitations")
-     * )
-     */
+    #[OA\Get(
+        path: "/api/admin/invitations",
+        summary: "List all invitations",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Invitations"],
+        parameters: [
+            new OA\Parameter(
+                name: "status",
+                in: "query",
+                description: "Filter by status",
+                schema: new OA\Schema(type: "string", enum: ["pending", "accepted", "expired", "cancelled"])
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "List of invitations")
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $query = Invitation::with('invitedBy')->latest();
@@ -50,23 +48,25 @@ class InvitationController extends Controller
         return response()->json($invitations);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/admin/invitations",
-     *     summary="Send invitation to a company",
-     *     tags={"Admin - Invitations"},
-     *     security={{"sanctum":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email"},
-     *             @OA\Property(property="email", type="string", format="email", example="company@example.com")
-     *         )
-     *     ),
-     *     @OA\Response(response=201, description="Invitation sent successfully"),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
+    #[OA\Post(
+        path: "/api/admin/invitations",
+        summary: "Send invitation to a company",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Invitations"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", example: "company@example.com")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: "Invitation sent successfully"),
+            new OA\Response(response: 422, description: "Validation error")
+        ]
+    )]
     public function store(SendInvitationRequest $request): JsonResponse
     {
         // Check if user already exists
@@ -99,21 +99,23 @@ class InvitationController extends Controller
         ], 201);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/admin/invitations/{id}",
-     *     summary="Cancel an invitation",
-     *     tags={"Admin - Invitations"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Invitation cancelled successfully")
-     * )
-     */
+    #[OA\Delete(
+        path: "/api/admin/invitations/{id}",
+        summary: "Cancel an invitation",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Invitations"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Invitation cancelled successfully")
+        ]
+    )]
     public function destroy(Invitation $invitation): JsonResponse
     {
         $this->invitationService->cancelInvitation($invitation);

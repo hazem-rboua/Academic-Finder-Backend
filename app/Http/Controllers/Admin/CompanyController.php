@@ -7,40 +7,38 @@ use App\Models\Company;
 use App\Services\CompanyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Tag(
- *     name="Admin - Companies",
- *     description="API endpoints for managing companies (Admin only)"
- * )
- */
+#[OA\Tag(name: "Admin - Companies", description: "API endpoints for managing companies (Admin only)")]
 class CompanyController extends Controller
 {
     public function __construct(private CompanyService $companyService)
     {
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/admin/companies",
-     *     summary="List all companies",
-     *     tags={"Admin - Companies"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="is_enabled",
-     *         in="query",
-     *         description="Filter by enabled status",
-     *         @OA\Schema(type="boolean")
-     *     ),
-     *     @OA\Parameter(
-     *         name="search",
-     *         in="query",
-     *         description="Search by name or email",
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(response=200, description="List of companies")
-     * )
-     */
+    #[OA\Get(
+        path: "/api/admin/companies",
+        summary: "List all companies",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Companies"],
+        parameters: [
+            new OA\Parameter(
+                name: "is_enabled",
+                in: "query",
+                description: "Filter by enabled status",
+                schema: new OA\Schema(type: "boolean")
+            ),
+            new OA\Parameter(
+                name: "search",
+                in: "query",
+                description: "Search by name or email",
+                schema: new OA\Schema(type: "string")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "List of companies")
+        ]
+    )]
     public function index(Request $request): JsonResponse
     {
         $filters = $request->only(['is_enabled', 'search', 'per_page']);
@@ -49,22 +47,24 @@ class CompanyController extends Controller
         return response()->json($companies);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/admin/companies/{id}",
-     *     summary="Get company details",
-     *     tags={"Admin - Companies"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Company details"),
-     *     @OA\Response(response=404, description="Company not found")
-     * )
-     */
+    #[OA\Get(
+        path: "/api/admin/companies/{id}",
+        summary: "Get company details",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Companies"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Company details"),
+            new OA\Response(response: 404, description: "Company not found")
+        ]
+    )]
     public function show(Company $company): JsonResponse
     {
         return response()->json([
@@ -72,21 +72,23 @@ class CompanyController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/admin/companies/{id}/enable",
-     *     summary="Enable a company",
-     *     tags={"Admin - Companies"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Company enabled successfully")
-     * )
-     */
+    #[OA\Put(
+        path: "/api/admin/companies/{id}/enable",
+        summary: "Enable a company",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Companies"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Company enabled successfully")
+        ]
+    )]
     public function enable(Company $company): JsonResponse
     {
         $company = $this->companyService->enableCompany($company);
@@ -97,21 +99,23 @@ class CompanyController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/admin/companies/{id}/disable",
-     *     summary="Disable a company",
-     *     tags={"Admin - Companies"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Company disabled successfully")
-     * )
-     */
+    #[OA\Put(
+        path: "/api/admin/companies/{id}/disable",
+        summary: "Disable a company",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Companies"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Company disabled successfully")
+        ]
+    )]
     public function disable(Company $company, Request $request): JsonResponse
     {
         $company = $this->companyService->disableCompany($company, $request->user());
@@ -122,21 +126,23 @@ class CompanyController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/admin/companies/{id}",
-     *     summary="Delete a company",
-     *     tags={"Admin - Companies"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Company deleted successfully")
-     * )
-     */
+    #[OA\Delete(
+        path: "/api/admin/companies/{id}",
+        summary: "Delete a company",
+        security: [["sanctum" => []]],
+        tags: ["Admin - Companies"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Company deleted successfully")
+        ]
+    )]
     public function destroy(Company $company): JsonResponse
     {
         $company->delete();

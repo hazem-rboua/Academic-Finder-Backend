@@ -6,24 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Company\UpdateProfileRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Tag(
- *     name="Company - Profile",
- *     description="API endpoints for company profile management"
- * )
- */
+#[OA\Tag(name: "Company - Profile", description: "API endpoints for company profile management")]
 class ProfileController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/company/profile",
-     *     summary="Get company profile",
-     *     tags={"Company - Profile"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(response=200, description="Company profile data")
-     * )
-     */
+    #[OA\Get(
+        path: "/api/company/profile",
+        summary: "Get company profile",
+        security: [["sanctum" => []]],
+        tags: ["Company - Profile"],
+        responses: [
+            new OA\Response(response: 200, description: "Company profile data")
+        ]
+    )]
     public function show(Request $request): JsonResponse
     {
         $user = $request->user()->load('company');
@@ -34,23 +30,25 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/company/profile",
-     *     summary="Update company profile",
-     *     tags={"Company - Profile"},
-     *     security={{"sanctum":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="company_name", type="string", example="Acme Corp"),
-     *             @OA\Property(property="phone", type="string", example="+1234567890")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Profile updated successfully")
-     * )
-     */
+    #[OA\Put(
+        path: "/api/company/profile",
+        summary: "Update company profile",
+        security: [["sanctum" => []]],
+        tags: ["Company - Profile"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "name", type: "string", example: "John Doe"),
+                    new OA\Property(property: "company_name", type: "string", example: "Acme Corp"),
+                    new OA\Property(property: "phone", type: "string", example: "+1234567890")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: "Profile updated successfully")
+        ]
+    )]
     public function update(UpdateProfileRequest $request): JsonResponse
     {
         $user = $request->user();

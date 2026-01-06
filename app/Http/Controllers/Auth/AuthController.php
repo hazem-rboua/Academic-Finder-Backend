@@ -10,40 +10,40 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Tag(
- *     name="Authentication",
- *     description="API endpoints for authentication"
- * )
- */
+#[OA\Tag(name: "Authentication", description: "API endpoints for authentication")]
 class AuthController extends Controller
 {
-    /**
-     * @OA\Post(
-     *     path="/api/auth/login",
-     *     summary="Login user",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", format="email", example="admin@academicfinder.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="Admin@123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Successful login",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="user", type="object"),
-     *             @OA\Property(property="token", type="string"),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Invalid credentials")
-     * )
-     */
+    #[OA\Post(
+        path: "/api/auth/login",
+        summary: "Login user",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "password"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", example: "admin@academicfinder.com"),
+                    new OA\Property(property: "password", type: "string", format: "password", example: "Admin@123")
+                ]
+            )
+        ),
+        tags: ["Authentication"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Successful login",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "user", type: "object"),
+                        new OA\Property(property: "token", type: "string"),
+                        new OA\Property(property: "token_type", type: "string", example: "Bearer")
+                    ]
+                )
+            ),
+            new OA\Response(response: 401, description: "Invalid credentials")
+        ]
+    )]
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where('email', $request->email)->first();
@@ -78,15 +78,15 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/logout",
-     *     summary="Logout user",
-     *     tags={"Authentication"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(response=200, description="Successfully logged out")
-     * )
-     */
+    #[OA\Post(
+        path: "/api/auth/logout",
+        summary: "Logout user",
+        security: [["sanctum" => []]],
+        tags: ["Authentication"],
+        responses: [
+            new OA\Response(response: 200, description: "Successfully logged out")
+        ]
+    )]
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
@@ -96,19 +96,23 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/auth/me",
-     *     summary="Get authenticated user",
-     *     tags={"Authentication"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="User data",
-     *         @OA\JsonContent(@OA\Property(property="user", type="object"))
-     *     )
-     * )
-     */
+    #[OA\Get(
+        path: "/api/auth/me",
+        summary: "Get authenticated user",
+        security: [["sanctum" => []]],
+        tags: ["Authentication"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "User data",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "user", type: "object")
+                    ]
+                )
+            )
+        ]
+    )]
     public function me(Request $request): JsonResponse
     {
         return response()->json([
@@ -116,22 +120,24 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/auth/refresh",
-     *     summary="Refresh authentication token",
-     *     tags={"Authentication"},
-     *     security={{"sanctum":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="New token generated",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="token", type="string"),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
-     *         )
-     *     )
-     * )
-     */
+    #[OA\Post(
+        path: "/api/auth/refresh",
+        summary: "Refresh authentication token",
+        security: [["sanctum" => []]],
+        tags: ["Authentication"],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "New token generated",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "token", type: "string"),
+                        new OA\Property(property: "token_type", type: "string", example: "Bearer")
+                    ]
+                )
+            )
+        ]
+    )]
     public function refresh(Request $request): JsonResponse
     {
         $user = $request->user();
