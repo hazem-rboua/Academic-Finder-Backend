@@ -117,6 +117,8 @@ To regenerate the documentation after making changes:
 php artisan l5-swagger:generate
 ```
 
+**Note**: The Swagger documentation is automatically generated during `composer install`. On the server, make sure to run the deployment script or manually generate the docs after deployment.
+
 ### Telescope Monitoring
 
 Access Telescope (admin only) at:
@@ -325,6 +327,60 @@ This project is proprietary software.
 ## Support
 
 For support, email support@academicfinder.com or open an issue in the repository.
+
+## Deployment
+
+### Using the Deployment Script
+
+A deployment script is provided for easy updates on the server:
+
+```bash
+# Make the script executable (first time only)
+chmod +x deploy.sh
+
+# Run the deployment
+./deploy.sh
+```
+
+The deployment script will:
+- Pull latest changes from git
+- Install/update dependencies
+- Clear and cache configuration
+- Run database migrations
+- Generate Swagger API documentation
+- Set proper permissions
+
+### Manual Deployment Steps
+
+If you prefer to deploy manually:
+
+```bash
+# Pull latest changes
+git pull origin main
+
+# Install dependencies
+composer install --no-dev --optimize-autoloader
+
+# Clear and cache config
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Run migrations
+php artisan migrate --force
+
+# Generate Swagger docs
+php artisan l5-swagger:generate
+
+# Set permissions
+chmod -R 775 storage bootstrap/cache
+```
+
+### Important Notes
+
+- Make sure the `storage/api-docs` directory exists and is writable
+- After deployment, the Swagger documentation will be available at `/api/documentation`
+- The API docs JSON file will be at `/docs/api-docs.json`
 
 ## Roadmap
 
