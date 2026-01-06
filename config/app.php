@@ -35,7 +35,7 @@ return [
     |
     */
 
-    'invitation_expiry_days' => env('INVITATION_EXPIRY_DAYS', 7),
+    'invitation_expiry_days' => (int) env('INVITATION_EXPIRY_DAYS', 7),
 
     /*
     |--------------------------------------------------------------------------

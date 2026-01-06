@@ -20,7 +20,7 @@ class InvitationService
         $token = $this->generateUniqueToken();
         
         // Calculate expiry date
-        $expiryDays = config('app.invitation_expiry_days', 7);
+        $expiryDays = (int) config('app.invitation_expiry_days', 7);
         $expiresAt = now()->addDays($expiryDays);
 
         // Create invitation
