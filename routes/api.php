@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\InvitationController as AdminInvitationController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Company\ProfileController;
+use App\Http\Controllers\ExamResultController;
 use App\Http\Controllers\InvitationController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,11 @@ Route::prefix('auth')->group(function () {
 Route::prefix('invitations')->group(function () {
     Route::get('/validate/{token}', [InvitationController::class, 'validate']);
     Route::post('/accept/{token}', [InvitationController::class, 'accept']);
+});
+
+// Exam results routes (public)
+Route::prefix('exam-results')->group(function () {
+    Route::post('/process', [ExamResultController::class, 'process']);
 });
 
 // Protected routes

@@ -30,6 +30,13 @@ return [
     // Profile
     'profile_updated' => 'تم تحديث الملف الشخصي بنجاح',
 
+    // Exam Results
+    'exam_processed_successfully' => 'تمت معالجة نتائج الامتحان بنجاح',
+    'exam_not_found' => 'الامتحان غير موجود',
+    'invalid_exam_data' => 'بيانات الامتحان غير صالحة',
+    'csv_file_not_found' => 'ملف CSV للخريطة غير موجود',
+    'csv_file_read_error' => 'خطأ في قراءة ملف CSV للخريطة',
+
     // Validation
     'validation_error' => 'خطأ في التحقق',
     'required_field' => 'حقل :attribute مطلوب.',

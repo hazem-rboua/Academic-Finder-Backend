@@ -8,6 +8,8 @@ A Laravel-based API backend for Academic Finder with admin/company authenticatio
 - **User Types**: Admin and Company users with role-based access control
 - **Invitation System**: Secure invitation links with unique tokens for company registration
 - **Admin Panel**: Complete company management (enable/disable, view, delete)
+- **Exam Results Processing**: Academic Finder algorithm for job compatibility analysis
+- **External Database Integration**: Connects to external exam database for results processing
 - **Multilanguage Support**: Arabic and English support for all API responses
 - **Telescope Monitoring**: Real-time application monitoring (admin-only access)
 - **API Documentation**: Auto-generated Swagger/OpenAPI documentation
@@ -69,6 +71,17 @@ Set your frontend URL:
 
 ```env
 FRONTEND_URL=http://localhost:3000
+```
+
+Configure external database connection (for exam results):
+
+```env
+# External Database Connection (twindix_api)
+EXTERNAL_DB_HOST=127.0.0.1
+EXTERNAL_DB_PORT=3306
+EXTERNAL_DB_DATABASE=twindix_api
+EXTERNAL_DB_USERNAME=your_username
+EXTERNAL_DB_PASSWORD=your_password
 ```
 
 ### 4. Database Setup
@@ -140,6 +153,12 @@ http://localhost:8000/telescope
 
 - `GET /api/invitations/validate/{token}` - Validate invitation token
 - `POST /api/invitations/accept/{token}` - Accept invitation and register
+
+### Exam Results (Public)
+
+- `POST /api/exam-results/process` - Process exam results and calculate job compatibility
+
+For detailed information about the Exam Results API, see [EXAM_RESULTS_API.md](EXAM_RESULTS_API.md)
 
 ### Admin Endpoints (Requires admin role)
 
