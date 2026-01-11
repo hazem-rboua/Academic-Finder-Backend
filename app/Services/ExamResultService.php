@@ -58,6 +58,9 @@ class ExamResultService
         $environmentStatus = $this->calculateEnvironmentStatus($environmentAnswers);
 
         return [
+            'job_title' => $examEnrollment->job_title ?? null,
+            'industry' => $examEnrollment->industry ?? null,
+            'seniority' => $examEnrollment->seniority ?? null,
             'selected_branches' => $selectedBranches,
             'environment_status' => $environmentStatus,
         ];
@@ -187,7 +190,11 @@ class ExamResultService
                 $onesCount = count(array_filter($values, fn($val) => $val === 1));
                 
                 // If 2 or more answers are 1, competency value is 1, otherwise 0
-                $competencies[] = $onesCount >= 2 ? 1 : 0;
+                $competencyValue = $onesCount >= 2 ? 1 : 0;
+                $competencies[] = $competencyValue;
+                
+                // Debug logging
+                Log::debug("Job Type: {$jobTypeName}, Title: {$title}, Ones Count: {$onesCount}, Competency: {$competencyValue}, Values: " . json_encode($values));
             }
 
             // Ensure we always have exactly 5 competencies (pad with 0 if needed)

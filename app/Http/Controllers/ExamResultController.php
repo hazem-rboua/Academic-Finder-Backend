@@ -48,6 +48,9 @@ class ExamResultController extends Controller
                             property: "data",
                             type: "object",
                             properties: [
+                                new OA\Property(property: "job_title", type: "string", example: "Airport Operations Director", nullable: true),
+                                new OA\Property(property: "industry", type: "string", example: "Aviation", nullable: true),
+                                new OA\Property(property: "seniority", type: "string", example: "Senior Management", nullable: true),
                                 new OA\Property(
                                     property: "selected_branches",
                                     type: "array",
