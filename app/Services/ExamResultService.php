@@ -187,14 +187,14 @@ class ExamResultService
     }
 
     /**
-     * Get job titles from template table
+     * Get job titles from templates table
      *
      * @return array
      */
     private function getJobTitles(): array
     {
         $template = DB::connection('external_api')
-            ->table('template')
+            ->table('templates')
             ->where('id', 6)
             ->first();
 
