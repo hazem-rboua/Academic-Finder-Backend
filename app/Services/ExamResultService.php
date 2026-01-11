@@ -61,7 +61,7 @@ class ExamResultService
     {
         return DB::connection('external_api')
             ->table('exam_enrollments')
-            ->where('exam_code', $examCode)
+            ->where('code', $examCode)
             ->first();
     }
 
