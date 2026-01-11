@@ -187,7 +187,7 @@ class ExamResultService
     }
 
     /**
-     * Get job titles from templates table
+     * Get job titles from templates table (only page 3 items from record id 6)
      *
      * @return array
      */
@@ -208,7 +208,13 @@ class ExamResultService
             return [];
         }
 
-        return $references;
+        // Filter to only include items from page 3
+        $page3References = array_filter($references, function($item) {
+            return isset($item['page']) && $item['page'] == 3;
+        });
+
+        // Re-index the array to have sequential keys
+        return array_values($page3References);
     }
 
     /**
