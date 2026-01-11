@@ -38,6 +38,8 @@ class ExamResultService
         $branchAnswers = [];
         $environmentAnswers = [];
         
+        Log::info("Total questions in exam: " . count($answers));
+        
         foreach ($answers as $questionNumber => $answerValue) {
             $questionNumber = (string) $questionNumber;
             $firstDigit = substr($questionNumber, 0, 1);
@@ -50,6 +52,10 @@ class ExamResultService
                 $environmentAnswers[$questionNumber] = $answerValue;
             }
         }
+        
+        Log::info("Branch questions: " . count($branchAnswers));
+        Log::info("Environment questions: " . count($environmentAnswers));
+        Log::info("Questions not in CSV: " . count(array_diff_key($branchAnswers, $csvMapping)));
 
         // 5. Calculate selected branches
         $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping);
@@ -168,6 +174,7 @@ class ExamResultService
             
             foreach ($answers as $questionNumber => $answerValue) {
                 if (!isset($csvMapping[$questionNumber])) {
+                    Log::debug("Question {$questionNumber} not found in CSV mapping");
                     continue;
                 }
 
