@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ExamProcessingException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -12,7 +13,7 @@ class ExamResultService
      *
      * @param string $examCode
      * @return array
-     * @throws \Exception
+     * @throws ExamProcessingException
      */
     public function processExamResults(string $examCode): array
     {
@@ -20,14 +21,14 @@ class ExamResultService
         $examEnrollment = $this->getExamEnrollment($examCode);
         
         if (!$examEnrollment) {
-            throw new \Exception(__('messages.exam_not_found'));
+            throw ExamProcessingException::notFound(__('messages.exam_not_found'));
         }
 
         // 2. Parse answers JSON
         $answers = json_decode($examEnrollment->answers, true);
         
         if (!$answers || !is_array($answers)) {
-            throw new \Exception(__('messages.invalid_exam_data'));
+            throw ExamProcessingException::invalidData(__('messages.invalid_exam_data'));
         }
 
         // 3. Load CSV mapping
@@ -68,21 +69,21 @@ class ExamResultService
      * Load CSV mapping from public directory
      *
      * @return array
-     * @throws \Exception
+     * @throws ExamProcessingException
      */
     private function loadCsvMapping(): array
     {
         $csvPath = public_path('AcademicFinderAlgorithm.csv');
         
         if (!file_exists($csvPath)) {
-            throw new \Exception(__('messages.csv_file_not_found'));
+            throw ExamProcessingException::serverError(__('messages.csv_file_not_found'));
         }
 
         $mapping = [];
         $handle = fopen($csvPath, 'r');
         
         if ($handle === false) {
-            throw new \Exception(__('messages.csv_file_read_error'));
+            throw ExamProcessingException::serverError(__('messages.csv_file_read_error'));
         }
 
         // Skip header row

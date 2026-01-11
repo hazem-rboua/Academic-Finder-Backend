@@ -151,10 +151,15 @@ class ExamResultController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
 
+            // Ensure we have a valid HTTP status code
+            $statusCode = is_int($e->getCode()) && $e->getCode() >= 400 && $e->getCode() < 600 
+                ? $e->getCode() 
+                : 500;
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 500);
+            ], $statusCode);
         }
     }
 }
