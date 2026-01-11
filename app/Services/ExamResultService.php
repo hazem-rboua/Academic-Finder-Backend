@@ -34,20 +34,32 @@ class ExamResultService
         // 3. Load CSV mapping
         $csvMapping = $this->loadCsvMapping();
 
-        // 4. Calculate reference values based on the algorithm
-        $referenceValues = $this->calculateReferenceValues($answers, $csvMapping);
+        // 4. Separate questions into branches (1xxxx-4xxxx) and environment (5xxxx)
+        $branchAnswers = [];
+        $environmentAnswers = [];
+        
+        foreach ($answers as $questionNumber => $answerValue) {
+            $questionNumber = (string) $questionNumber;
+            $firstDigit = substr($questionNumber, 0, 1);
+            
+            if (in_array($firstDigit, ['1', '2', '3', '4'])) {
+                // Branch questions (job types)
+                $branchAnswers[$questionNumber] = $answerValue;
+            } elseif ($firstDigit === '5') {
+                // Environment questions
+                $environmentAnswers[$questionNumber] = $answerValue;
+            }
+        }
 
-        // 5. Get job titles from template
-        $jobTitles = $this->getJobTitles();
+        // 5. Calculate selected branches
+        $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping);
 
-        // 6. Match references with job titles
-        $results = $this->matchReferencesWithTitles($referenceValues, $jobTitles);
+        // 6. Calculate environment status
+        $environmentStatus = $this->calculateEnvironmentStatus($environmentAnswers);
 
         return [
-            'exam_code' => $examCode,
-            'total_questions' => count($answers),
-            'reference_values' => $referenceValues,
-            'job_compatibility' => $results,
+            'selected_branches' => $selectedBranches,
+            'environment_status' => $environmentStatus,
         ];
     }
 
@@ -117,145 +129,114 @@ class ExamResultService
     }
 
     /**
-     * Calculate reference values based on the algorithm
-     * 
-     * Algorithm: Group answers by title. If 2 or more answers with the same title have value 1,
-     * then the final value for that title is 1. Otherwise, it's 0.
+     * Calculate selected branches with competencies
      *
      * @param array $answers
      * @param array $csvMapping
      * @return array
      */
-    private function calculateReferenceValues(array $answers, array $csvMapping): array
+    private function calculateSelectedBranches(array $answers, array $csvMapping): array
     {
-        // Group answers by title
-        $titleGroups = [];
-        
-        foreach ($answers as $questionNumber => $answerValue) {
-            $questionNumber = (string) $questionNumber;
-            
-            if (!isset($csvMapping[$questionNumber])) {
-                Log::warning("Question number {$questionNumber} not found in CSV mapping");
-                continue;
-            }
+        // Define the 16 job types in order with their reference codes
+        $jobTypes = [
+            'R17' => 'Open Thinking Jobs',
+            'R18' => 'Structured Thinking Jobs',
+            'R19' => 'Reference Thinking Jobs',
+            'R20' => 'Critical Thinking Jobs',
+            'R21' => 'Sales Communication Jobs',
+            'R22' => 'Public Communication Jobs',
+            'R23' => 'Educational Communication Jobs',
+            'R24' => 'Command Communication Jobs',
+            'R25' => 'Hard Labor Jobs',
+            'R26' => 'Paperwork Jobs',
+            'R27' => 'Craftsmanship Jobs',
+            'R28' => 'Tech-Work Jobs',
+            'R29' => 'Social Service Jobs',
+            'R30' => 'Rescue and Care Jobs',
+            'R31' => 'Fancy Serving Jobs',
+            'R32' => 'Basic Serving Jobs',
+        ];
 
-            $title = $csvMapping[$questionNumber]['title'];
-            $reference = $csvMapping[$questionNumber]['reference'];
-
-            if (!isset($titleGroups[$title])) {
-                $titleGroups[$title] = [
-                    'reference' => $reference,
-                    'answers' => [],
-                ];
-            }
-
-            $titleGroups[$title]['answers'][] = (int) $answerValue;
-        }
-
-        // Calculate final values
-        $referenceValues = [];
-        
-        foreach ($titleGroups as $title => $data) {
-            $reference = $data['reference'];
-            $answers = $data['answers'];
-            
-            // Count how many answers have value 1
-            $onesCount = count(array_filter($answers, fn($val) => $val === 1));
-            
-            // If 2 or more answers are 1, final value is 1, otherwise 0
-            $finalValue = $onesCount >= 2 ? 1 : 0;
-
-            if (!isset($referenceValues[$reference])) {
-                $referenceValues[$reference] = [
-                    'reference' => $reference,
-                    'titles' => [],
-                    'total_value' => 0,
-                ];
-            }
-
-            $referenceValues[$reference]['titles'][$title] = [
-                'title' => $title,
-                'value' => $finalValue,
-                'ones_count' => $onesCount,
-                'total_questions' => count($answers),
-            ];
-
-            $referenceValues[$reference]['total_value'] += $finalValue;
-        }
-
-        return array_values($referenceValues);
-    }
-
-    /**
-     * Get job titles from templates table (only page 3 items from record id 6)
-     *
-     * @return array
-     */
-    private function getJobTitles(): array
-    {
-        $template = DB::connection('external_api')
-            ->table('templates')
-            ->where('id', 6)
-            ->first();
-
-        if (!$template || empty($template->references)) {
-            return [];
-        }
-
-        $references = json_decode($template->references, true);
-        
-        if (!$references || !is_array($references)) {
-            return [];
-        }
-
-        // Filter to only include items from page 3
-        $page3References = array_filter($references, function($item) {
-            return isset($item['page']) && $item['page'] == 3;
-        });
-
-        // Re-index the array to have sequential keys
-        return array_values($page3References);
-    }
-
-    /**
-     * Match reference values with job titles from template
-     *
-     * @param array $referenceValues
-     * @param array $jobTitles
-     * @return array
-     */
-    private function matchReferencesWithTitles(array $referenceValues, array $jobTitles): array
-    {
         $results = [];
 
-        // Create a lookup map for job titles by reference
-        $referenceTitleMap = [];
-        foreach ($jobTitles as $jobTitle) {
-            $reference = $jobTitle['reference'] ?? null;
-            if ($reference) {
-                if (!isset($referenceTitleMap[$reference])) {
-                    $referenceTitleMap[$reference] = [];
-                }
-                $referenceTitleMap[$reference][] = $jobTitle;
-            }
-        }
-
-        // Match calculated values with job titles
-        foreach ($referenceValues as $refData) {
-            $reference = $refData['reference'];
+        foreach ($jobTypes as $reference => $jobTypeName) {
+            // Group answers by title for this reference
+            $titleGroups = [];
             
+            foreach ($answers as $questionNumber => $answerValue) {
+                if (!isset($csvMapping[$questionNumber])) {
+                    continue;
+                }
+
+                $mapping = $csvMapping[$questionNumber];
+                if ($mapping['reference'] !== $reference) {
+                    continue;
+                }
+
+                $title = $mapping['title'];
+                if (!isset($titleGroups[$title])) {
+                    $titleGroups[$title] = [];
+                }
+                $titleGroups[$title][] = (int) $answerValue;
+            }
+
+            // Calculate competency values (5 competencies per job type)
+            $competencies = [];
+            foreach ($titleGroups as $title => $values) {
+                // Count how many answers are 1
+                $onesCount = count(array_filter($values, fn($val) => $val === 1));
+                
+                // If 2 or more answers are 1, competency value is 1, otherwise 0
+                $competencies[] = $onesCount >= 2 ? 1 : 0;
+            }
+
+            // Ensure we always have exactly 5 competencies (pad with 0 if needed)
+            while (count($competencies) < 5) {
+                $competencies[] = 0;
+            }
+            $competencies = array_slice($competencies, 0, 5);
+
             $results[] = [
-                'reference' => $reference,
-                'total_value' => $refData['total_value'],
-                'titles' => $refData['titles'],
-                'job_descriptions' => $referenceTitleMap[$reference] ?? [],
+                'job_type' => $jobTypeName,
+                'chosen_competencies' => $competencies,
             ];
         }
-
-        // Sort by total_value descending to show best matches first
-        usort($results, fn($a, $b) => $b['total_value'] <=> $a['total_value']);
 
         return $results;
     }
+
+    /**
+     * Calculate environment status from questions
+     *
+     * @param array $environmentAnswers
+     * @return array
+     */
+    private function calculateEnvironmentStatus(array $environmentAnswers): array
+    {
+        $status = [];
+        
+        // Sort by question number to maintain order
+        ksort($environmentAnswers);
+        
+        $questionIndex = 1;
+        foreach ($environmentAnswers as $questionNumber => $answerValue) {
+            $status[] = [
+                'question' => $questionIndex,
+                'selected_option' => (int) $answerValue,
+            ];
+            $questionIndex++;
+        }
+
+        // Ensure we have exactly 10 questions (pad with 0 if needed)
+        while (count($status) < 10) {
+            $status[] = [
+                'question' => count($status) + 1,
+                'selected_option' => 0,
+            ];
+        }
+
+        return array_slice($status, 0, 10);
+    }
+
 }
 

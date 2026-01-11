@@ -48,42 +48,30 @@ class ExamResultController extends Controller
                             property: "data",
                             type: "object",
                             properties: [
-                                new OA\Property(property: "exam_code", type: "string", example: "EXAM123456"),
-                                new OA\Property(property: "total_questions", type: "integer", example: 45),
                                 new OA\Property(
-                                    property: "reference_values",
+                                    property: "selected_branches",
                                     type: "array",
                                     items: new OA\Items(
                                         type: "object",
                                         properties: [
-                                            new OA\Property(property: "reference", type: "string", example: "R17"),
-                                            new OA\Property(property: "total_value", type: "integer", example: 3),
+                                            new OA\Property(property: "job_type", type: "string", example: "Open Thinking Jobs"),
                                             new OA\Property(
-                                                property: "titles",
-                                                type: "object",
-                                                additionalProperties: new OA\AdditionalProperties(
-                                                    type: "object",
-                                                    properties: [
-                                                        new OA\Property(property: "title", type: "string"),
-                                                        new OA\Property(property: "value", type: "integer"),
-                                                        new OA\Property(property: "ones_count", type: "integer"),
-                                                        new OA\Property(property: "total_questions", type: "integer")
-                                                    ]
-                                                )
+                                                property: "chosen_competencies",
+                                                type: "array",
+                                                items: new OA\Items(type: "integer", example: 0),
+                                                example: [0, 0, 0, 0, 0]
                                             )
                                         ]
                                     )
                                 ),
                                 new OA\Property(
-                                    property: "job_compatibility",
+                                    property: "environment_status",
                                     type: "array",
                                     items: new OA\Items(
                                         type: "object",
                                         properties: [
-                                            new OA\Property(property: "reference", type: "string"),
-                                            new OA\Property(property: "total_value", type: "integer"),
-                                            new OA\Property(property: "titles", type: "object"),
-                                            new OA\Property(property: "job_descriptions", type: "array", items: new OA\Items(type: "object"))
+                                            new OA\Property(property: "question", type: "integer", example: 1),
+                                            new OA\Property(property: "selected_option", type: "integer", example: 1)
                                         ]
                                     )
                                 )
