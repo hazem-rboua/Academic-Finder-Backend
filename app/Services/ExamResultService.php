@@ -31,8 +31,10 @@ class ExamResultService
             throw ExamProcessingException::invalidData(__('messages.invalid_exam_data'));
         }
 
-        // 3. Load CSV mapping
-        $csvMapping = $this->loadCsvMapping();
+        // 3. Load CSV mapping and title order
+        $csvData = $this->loadCsvMapping();
+        $csvMapping = $csvData['mapping'];
+        $titleOrder = $csvData['title_order'];
 
         // 4. Separate questions into branches (1xxxx-4xxxx) and environment (5xxxx)
         $branchAnswers = [];
@@ -58,7 +60,7 @@ class ExamResultService
         Log::info("Questions not in CSV: " . count(array_diff_key($branchAnswers, $csvMapping)));
 
         // 5. Calculate selected branches
-        $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping);
+        $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping, $titleOrder);
 
         // 6. Calculate environment status
         $environmentStatus = $this->calculateEnvironmentStatus($environmentAnswers);
@@ -89,7 +91,7 @@ class ExamResultService
     /**
      * Load CSV mapping from public directory
      *
-     * @return array
+     * @return array Returns ['mapping' => [...], 'title_order' => [...]]
      * @throws ExamProcessingException
      */
     private function loadCsvMapping(): array
@@ -101,6 +103,7 @@ class ExamResultService
         }
 
         $mapping = [];
+        $titleOrder = []; // Track the order of titles for each reference
         $handle = fopen($csvPath, 'r');
         
         if ($handle === false) {
@@ -130,11 +133,22 @@ class ExamResultService
                 'title' => $title,
                 'reference' => $reference,
             ];
+
+            // Track title order per reference
+            if (!isset($titleOrder[$reference])) {
+                $titleOrder[$reference] = [];
+            }
+            if (!in_array($title, $titleOrder[$reference])) {
+                $titleOrder[$reference][] = $title;
+            }
         }
 
         fclose($handle);
 
-        return $mapping;
+        return [
+            'mapping' => $mapping,
+            'title_order' => $titleOrder,
+        ];
     }
 
     /**
@@ -142,9 +156,10 @@ class ExamResultService
      *
      * @param array $answers
      * @param array $csvMapping
+     * @param array $titleOrder
      * @return array
      */
-    private function calculateSelectedBranches(array $answers, array $csvMapping): array
+    private function calculateSelectedBranches(array $answers, array $csvMapping, array $titleOrder): array
     {
         // Define the 16 job types in order with their reference codes
         $jobTypes = [
@@ -190,18 +205,28 @@ class ExamResultService
                 $titleGroups[$title][] = (int) $answerValue;
             }
 
-            // Calculate competency values (5 competencies per job type)
+            // Calculate competency values (5 competencies per job type) in the correct order
             $competencies = [];
-            foreach ($titleGroups as $title => $values) {
-                // Count how many answers are 1
-                $onesCount = count(array_filter($values, fn($val) => $val === 1));
-                
-                // If 2 or more answers are 1, competency value is 1, otherwise 0
-                $competencyValue = $onesCount >= 2 ? 1 : 0;
-                $competencies[] = $competencyValue;
-                
-                // Debug logging
-                Log::debug("Job Type: {$jobTypeName}, Title: {$title}, Ones Count: {$onesCount}, Competency: {$competencyValue}, Values: " . json_encode($values));
+            
+            // Get the title order for this reference from CSV
+            $orderedTitles = $titleOrder[$reference] ?? [];
+            
+            foreach ($orderedTitles as $title) {
+                if (isset($titleGroups[$title])) {
+                    $values = $titleGroups[$title];
+                    // Count how many answers are 1
+                    $onesCount = count(array_filter($values, fn($val) => $val === 1));
+                    
+                    // If 2 or more answers are 1, competency value is 1, otherwise 0
+                    $competencyValue = $onesCount >= 2 ? 1 : 0;
+                    $competencies[] = $competencyValue;
+                    
+                    // Debug logging
+                    Log::debug("Job Type: {$jobTypeName}, Title: {$title}, Ones Count: {$onesCount}, Competency: {$competencyValue}, Values: " . json_encode($values));
+                } else {
+                    // Title not found in answers, default to 0
+                    $competencies[] = 0;
+                }
             }
 
             // Ensure we always have exactly 5 competencies (pad with 0 if needed)
