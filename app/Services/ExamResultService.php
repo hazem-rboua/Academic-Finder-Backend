@@ -62,8 +62,8 @@ class ExamResultService
         // 5. Calculate selected branches
         $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping, $titleOrder);
 
-        // 6. Calculate environment status
-        $environmentStatus = $this->calculateEnvironmentStatus($environmentAnswers);
+        // 6. Calculate environment status (pass all answers and csvMapping)
+        $environmentStatus = $this->calculateEnvironmentStatus($answers, $csvMapping);
 
         return [
             'job_title' => $examEnrollment->job_title ?? null,
@@ -245,36 +245,59 @@ class ExamResultService
     }
 
     /**
-     * Calculate environment status from questions
+     * Calculate environment status from questions R33-R42
+     * Each environment reference has 3 questions, apply 2+ ones = 1 rule
      *
-     * @param array $environmentAnswers
+     * @param array $answers All exam answers
+     * @param array $csvMapping CSV mapping data
      * @return array
      */
-    private function calculateEnvironmentStatus(array $environmentAnswers): array
+    private function calculateEnvironmentStatus(array $answers, array $csvMapping): array
     {
+        // Define the 10 environment references in order
+        $environmentRefs = [
+            'R33',  // Question 1: مرنة
+            'R34',  // Question 2: ديناميكية
+            'R35',  // Question 3: ابتكارية
+            'R36',  // Question 4: تنافسية
+            'R37',  // Question 5: حرة
+            'R38',  // Question 6: موجه بالأهداف
+            'R39',  // Question 7: الأعمال اليدوية
+            'R40',  // Question 8: ضاغطة
+            'R41',  // Question 9: استقلالية
+            'R42',  // Question 10: العمل الجماعي
+        ];
+
         $status = [];
         
-        // Sort by question number to maintain order
-        ksort($environmentAnswers);
-        
-        $questionIndex = 1;
-        foreach ($environmentAnswers as $questionNumber => $answerValue) {
+        foreach ($environmentRefs as $index => $reference) {
+            // Find all questions for this reference
+            $refAnswers = [];
+            
+            foreach ($answers as $questionNumber => $answerValue) {
+                if (!isset($csvMapping[$questionNumber])) {
+                    continue;
+                }
+                
+                $mapping = $csvMapping[$questionNumber];
+                if ($mapping['reference'] === $reference) {
+                    $refAnswers[] = (int) $answerValue;
+                }
+            }
+            
+            // Apply the 2+ ones = 1 rule
+            $onesCount = count(array_filter($refAnswers, fn($val) => $val === 1));
+            $selectedOption = $onesCount >= 2 ? 1 : 0;
+            
             $status[] = [
-                'question' => $questionIndex,
-                'selected_option' => (int) $answerValue,
+                'question' => $index + 1,
+                'selected_option' => $selectedOption,
             ];
-            $questionIndex++;
+            
+            Log::debug("Environment Q" . ($index + 1) . " ({$reference}): Ones Count: {$onesCount}, Selected: {$selectedOption}, Values: " . json_encode($refAnswers));
         }
 
-        // Ensure we have exactly 10 questions (pad with 0 if needed)
-        while (count($status) < 10) {
-            $status[] = [
-                'question' => count($status) + 1,
-                'selected_option' => 0,
-            ];
-        }
-
-        return array_slice($status, 0, 10);
+        return $status;
     }
 
 }
