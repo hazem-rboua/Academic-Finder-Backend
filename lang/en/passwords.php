@@ -19,4 +19,12 @@ return [
     'token' => 'This password reset token is invalid.',
     'user' => "We can't find a user with that email address.",
 
+    // Email notification strings
+    'reset_subject' => 'Password Reset Notification',
+    'greeting' => 'Hello :name,',
+    'reset_intro' => 'You are receiving this email because we received a password reset request for your account.',
+    'reset_action' => 'Reset Password',
+    'reset_expiry' => 'This password reset link will expire in :count minutes.',
+    'reset_outro' => 'If you did not request a password reset, no further action is required.',
+
 ];

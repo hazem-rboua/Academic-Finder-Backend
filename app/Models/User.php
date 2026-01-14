@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserType;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -85,5 +86,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isCompany(): bool
     {
         return $this->user_type === UserType::COMPANY;
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $resetUrl = config('app.frontend_url') . '/reset-password';
+        $this->notify(new ResetPasswordNotification($token, $resetUrl));
     }
 }

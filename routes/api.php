@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\InvitationController as AdminInvitationController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Company\ProfileController;
 use App\Http\Controllers\ExamResultController;
 use App\Http\Controllers\InvitationController;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
 });
 
 // Invitation routes (public)
