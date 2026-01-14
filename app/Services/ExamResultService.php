@@ -104,22 +104,17 @@ class ExamResultService
             Log::info('AI recommendations received successfully', [
                 'exam_code' => $examCode,
             ]);
+            
+            // 9. Return AI response as the main result
+            return $aiRecommendations;
         } else {
-            Log::warning('AI recommendations not available, continuing without AI data', [
+            Log::warning('AI recommendations not available, returning exam results', [
                 'exam_code' => $examCode,
             ]);
+            
+            // 9. Return exam results if AI not available
+            return $examResults;
         }
-
-        // 9. Return results with AI recommendations
-        return [
-            'job_title' => $examEnrollment->job_title ?? null,
-            'industry' => $examEnrollment->industry ?? null,
-            'seniority' => $examEnrollment->seniority ?? null,
-            'selected_branches' => $selectedBranches,
-            'environment_status' => $environmentStatus,
-            'ai_recommendations' => $aiRecommendations,
-            'ai_available' => $aiRecommendations !== null,
-        ];
     }
 
     /**

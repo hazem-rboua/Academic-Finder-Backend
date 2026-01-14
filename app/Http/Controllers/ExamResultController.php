@@ -47,6 +47,7 @@ class ExamResultController extends Controller
                         new OA\Property(
                             property: "data",
                             type: "object",
+                            description: "AI API response if available, otherwise exam results with selected_branches and environment_status",
                             properties: [
                                 new OA\Property(property: "job_title", type: "string", example: "Airport Operations Director", nullable: true),
                                 new OA\Property(property: "industry", type: "string", example: "Aviation", nullable: true),
@@ -77,19 +78,6 @@ class ExamResultController extends Controller
                                             new OA\Property(property: "selected_option", type: "integer", example: 1)
                                         ]
                                     )
-                                ),
-                                new OA\Property(
-                                    property: "ai_recommendations",
-                                    type: "object",
-                                    nullable: true,
-                                    description: "AI-generated job recommendations (null if AI service unavailable)",
-                                    example: ["recommended_jobs" => ["Software Engineer", "Data Analyst"]]
-                                ),
-                                new OA\Property(
-                                    property: "ai_available",
-                                    type: "boolean",
-                                    description: "Whether AI recommendations were successfully retrieved",
-                                    example: true
                                 )
                             ]
                         )

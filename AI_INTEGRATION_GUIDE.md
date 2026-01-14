@@ -83,6 +83,22 @@ Accept: application/json
 ```
 
 ### Response Format
+
+**When AI API is available:**
+The response `data` field contains the AI API's response directly:
+```json
+{
+  "success": true,
+  "message": "Exam processed successfully",
+  "data": {
+    // Whatever the AI API returns (structure depends on AI service)
+    // Could be job recommendations, analysis, etc.
+  }
+}
+```
+
+**When AI API is unavailable:**
+The response `data` field contains the calculated exam results:
 ```json
 {
   "success": true,
@@ -92,12 +108,7 @@ Accept: application/json
     "industry": "Aviation",
     "seniority": "Senior Management",
     "selected_branches": [...],
-    "environment_status": [...],
-    "ai_recommendations": {
-      // AI API response (structure depends on AI service)
-      // null if AI service unavailable
-    },
-    "ai_available": true  // false if AI service unavailable
+    "environment_status": [...]
   }
 }
 ```
@@ -114,24 +125,18 @@ The system implements exponential backoff retry strategy:
 ### Failure Scenarios
 
 #### 1. AI API Unavailable
-```json
-{
-  "ai_recommendations": null,
-  "ai_available": false
-}
-```
-**Behavior**: System continues normally, returns exam results without AI data.
+**Behavior**: System returns calculated exam results (selected_branches and environment_status)
 
 #### 2. AI API Timeout
 **Timeout**: 10 seconds per request
-**Behavior**: After 3 retries and timeouts, returns exam results without AI data.
+**Behavior**: After 3 retries and timeouts, returns calculated exam results
 
 #### 3. AI API Error Response
 **Status Codes**: 4xx or 5xx
-**Behavior**: Logs error, returns exam results without AI data.
+**Behavior**: Logs error, returns calculated exam results
 
 #### 4. Network Error
-**Behavior**: Retries 3 times with exponential backoff, then returns exam results without AI data.
+**Behavior**: Retries 3 times with exponential backoff, then returns calculated exam results
 
 ## Logging
 
@@ -166,7 +171,7 @@ curl -X POST http://your-api-url/api/exam-results/process \
   -d '{"exam_code":"YOUR_EXAM_CODE"}'
 ```
 
-**Expected**: Response includes `ai_recommendations` object and `ai_available: true`
+**Expected**: Response `data` field contains the AI API's response directly
 
 #### 2. Test with AI API Disabled
 Set in `.env`:
@@ -174,7 +179,7 @@ Set in `.env`:
 AI_API_ENABLED=false
 ```
 
-**Expected**: Response includes `ai_recommendations: null` and `ai_available: false`
+**Expected**: Response `data` field contains calculated exam results (selected_branches and environment_status)
 
 #### 3. Test with Arabic Locale
 ```bash
