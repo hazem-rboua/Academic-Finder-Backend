@@ -5,9 +5,26 @@ namespace App\Services;
 use App\Exceptions\ExamProcessingException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
 
 class ExamResultService
 {
+    /**
+     * AI Recommendation Service
+     *
+     * @var AiRecommendationService
+     */
+    protected $aiRecommendationService;
+
+    /**
+     * Constructor
+     *
+     * @param AiRecommendationService $aiRecommendationService
+     */
+    public function __construct(AiRecommendationService $aiRecommendationService)
+    {
+        $this->aiRecommendationService = $aiRecommendationService;
+    }
     /**
      * Process exam results and calculate job compatibility
      *
@@ -65,12 +82,43 @@ class ExamResultService
         // 6. Calculate environment status (pass all answers and csvMapping)
         $environmentStatus = $this->calculateEnvironmentStatus($answers, $csvMapping);
 
+        // 7. Prepare exam results
+        $examResults = [
+            'job_title' => $examEnrollment->job_title ?? null,
+            'industry' => $examEnrollment->industry ?? null,
+            'seniority' => $examEnrollment->seniority ?? null,
+            'selected_branches' => $selectedBranches,
+            'environment_status' => $environmentStatus,
+        ];
+
+        // 8. Get AI recommendations
+        $locale = App::getLocale();
+        Log::info('Getting AI recommendations', [
+            'exam_code' => $examCode,
+            'locale' => $locale,
+        ]);
+
+        $aiRecommendations = $this->aiRecommendationService->getRecommendations($examResults, $locale);
+
+        if ($aiRecommendations !== null) {
+            Log::info('AI recommendations received successfully', [
+                'exam_code' => $examCode,
+            ]);
+        } else {
+            Log::warning('AI recommendations not available, continuing without AI data', [
+                'exam_code' => $examCode,
+            ]);
+        }
+
+        // 9. Return results with AI recommendations
         return [
             'job_title' => $examEnrollment->job_title ?? null,
             'industry' => $examEnrollment->industry ?? null,
             'seniority' => $examEnrollment->seniority ?? null,
             'selected_branches' => $selectedBranches,
             'environment_status' => $environmentStatus,
+            'ai_recommendations' => $aiRecommendations,
+            'ai_available' => $aiRecommendations !== null,
         ];
     }
 

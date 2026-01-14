@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'ai_api' => [
+        'base_url' => env('AI_API_BASE_URL', 'https://acdmic-ai.twindix.com'),
+        'timeout' => (int) env('AI_API_TIMEOUT', 10),
+        'retry_times' => (int) env('AI_API_RETRY_TIMES', 3),
+        'enabled' => env('AI_API_ENABLED', true),
+    ],
+
 ];

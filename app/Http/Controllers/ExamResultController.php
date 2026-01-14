@@ -77,6 +77,19 @@ class ExamResultController extends Controller
                                             new OA\Property(property: "selected_option", type: "integer", example: 1)
                                         ]
                                     )
+                                ),
+                                new OA\Property(
+                                    property: "ai_recommendations",
+                                    type: "object",
+                                    nullable: true,
+                                    description: "AI-generated job recommendations (null if AI service unavailable)",
+                                    example: ["recommended_jobs" => ["Software Engineer", "Data Analyst"]]
+                                ),
+                                new OA\Property(
+                                    property: "ai_available",
+                                    type: "boolean",
+                                    description: "Whether AI recommendations were successfully retrieved",
+                                    example: true
                                 )
                             ]
                         )
