@@ -57,13 +57,26 @@ php artisan config:cache
 php artisan queue:work
 ```
 
-**Production** (use Supervisor - see ASYNC_PROCESSING_GUIDE.md for details):
+**Production - VPS/Dedicated Server** (use Supervisor):
 ```bash
 # After setting up supervisor config
 sudo supervisorctl reread
 sudo supervisorctl update
 sudo supervisorctl start laravel-worker:*
 ```
+
+**Production - Shared Hosting** (use Cron Job):
+
+See `SHARED_HOSTING_SETUP.md` for detailed instructions.
+
+Quick setup:
+1. Go to cPanel → Cron Jobs
+2. Add this cron job (runs every minute):
+```bash
+* * * * * cd /path/to/academic-finder-backend && php artisan queue:work database --stop-when-empty --max-time=50
+```
+3. Replace `/path/to/academic-finder-backend` with your actual path
+4. Save and wait 1-2 minutes for first run
 
 ### 5. Test the Implementation
 
