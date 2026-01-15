@@ -141,7 +141,7 @@ class ExamResultController extends Controller
     #[OA\Get(
         path: "/api/exam-results/status/{jobId}",
         summary: "Get exam processing job status",
-        description: "Poll this endpoint to check the status and progress of an exam processing job",
+        description: "Poll this endpoint every 2 seconds to check the status and progress of an exam processing job. Response varies based on job status: pending (waiting), processing (in progress), completed (finished with results), or failed (error occurred).",
         tags: ["Exam Results"],
         parameters: [
             new OA\Parameter(
@@ -149,40 +149,56 @@ class ExamResultController extends Controller
                 in: "path",
                 required: true,
                 description: "The unique job ID returned from the process endpoint",
-                schema: new OA\Schema(type: "string", format: "uuid")
+                schema: new OA\Schema(type: "string", format: "uuid", example: "550e8400-e29b-41d4-a716-446655440000")
             )
         ],
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Job status retrieved successfully",
+                description: "Job status retrieved successfully. Response structure varies by status.",
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "success", type: "boolean", example: true),
+                        new OA\Property(property: "success", type: "boolean", description: "True for pending/processing/completed, false for failed"),
                         new OA\Property(
                             property: "data",
                             type: "object",
                             properties: [
-                                new OA\Property(property: "status", type: "string", enum: ["pending", "processing", "completed", "failed"], example: "processing"),
-                                new OA\Property(property: "progress", type: "integer", example: 65),
-                                new OA\Property(property: "current_step", type: "string", example: "Getting AI recommendations..."),
-                                new OA\Property(property: "started_at", type: "string", format: "date-time", example: "2026-01-15T10:30:00Z"),
+                                new OA\Property(property: "status", type: "string", enum: ["pending", "processing", "completed", "failed"], description: "Current job status"),
+                                new OA\Property(property: "progress", type: "integer", description: "Progress percentage (0-100)", example: 65),
+                                new OA\Property(property: "current_step", type: "string", nullable: true, description: "Human-readable current step", example: "Getting AI recommendations..."),
+                                new OA\Property(property: "started_at", type: "string", format: "date-time", nullable: true, description: "When job started processing", example: "2026-01-15T10:30:00+00:00"),
                                 new OA\Property(
                                     property: "result",
                                     type: "object",
-                                    description: "Only present when status is completed",
-                                    nullable: true
+                                    description: "Only present when status=completed. Contains AI recommendations and exam results.",
+                                    nullable: true,
+                                    properties: [
+                                        new OA\Property(property: "job_title", type: "string", example: "Airport Operations Director"),
+                                        new OA\Property(property: "industry", type: "string", example: "Aviation"),
+                                        new OA\Property(property: "seniority", type: "string", example: "Senior Management"),
+                                        new OA\Property(property: "selected_branches", type: "array", items: new OA\Items(type: "object")),
+                                        new OA\Property(property: "environment_status", type: "array", items: new OA\Items(type: "object"))
+                                    ]
                                 ),
-                                new OA\Property(property: "completed_at", type: "string", format: "date-time", nullable: true),
-                                new OA\Property(property: "error_message", type: "string", nullable: true)
+                                new OA\Property(property: "error_message", type: "string", nullable: true, description: "Only present when status=failed. Contains error details.", example: "AI API error (HTTP 500): Internal server error"),
+                                new OA\Property(property: "completed_at", type: "string", format: "date-time", nullable: true, description: "When job completed (success or failure)", example: "2026-01-15T10:30:38+00:00")
                             ]
                         )
+                    ],
+                    example: [
+                        "success" => true,
+                        "data" => [
+                            "status" => "processing",
+                            "progress" => 65,
+                            "current_step" => "Getting AI recommendations...",
+                            "started_at" => "2026-01-15T10:30:00+00:00"
+                        ]
                     ]
                 )
             ),
             new OA\Response(
                 response: 404,
-                description: "Job not found",
+                description: "Job not found - Invalid job ID",
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: "success", type: "boolean", example: false),
