@@ -37,6 +37,7 @@ class ExamProcessingJob extends Model
      */
     protected $casts = [
         'result' => 'array',
+        'progress' => 'integer',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
     ];
