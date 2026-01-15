@@ -32,10 +32,13 @@ return [
 
     // Exam Results
     'exam_processed_successfully' => 'Exam results processed successfully',
+    'exam_processing_started' => 'Exam processing started',
+    'exam_processing_failed' => 'Failed to start exam processing',
     'exam_not_found' => 'Exam not found',
     'invalid_exam_data' => 'Invalid exam data',
     'csv_file_not_found' => 'CSV mapping file not found',
     'csv_file_read_error' => 'Error reading CSV mapping file',
+    'job_not_found' => 'Job not found',
 
     // Validation
     'validation_error' => 'Validation error',

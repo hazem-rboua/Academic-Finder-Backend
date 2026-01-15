@@ -26,7 +26,7 @@ class ExamResultService
         $this->aiRecommendationService = $aiRecommendationService;
     }
     /**
-     * Process exam results and calculate job compatibility
+     * Process exam results and calculate job compatibility (synchronous)
      *
      * @param string $examCode
      * @return array
@@ -34,26 +34,92 @@ class ExamResultService
      */
     public function processExamResults(string $examCode): array
     {
-        // 1. Get exam enrollment data from external database
+        // 1. Validate and get exam
+        $examEnrollment = $this->validateAndGetExam($examCode);
+
+        // 2. Parse exam answers
+        $answers = $this->parseExamAnswers($examEnrollment);
+
+        // 3. Load CSV mapping
+        $csvData = $this->loadCsvMapping();
+
+        // 4. Process exam data
+        $examResults = $this->processExamData($answers, $examEnrollment, $csvData);
+
+        // 5. Get AI recommendations
+        $locale = App::getLocale();
+        Log::info('Getting AI recommendations', [
+            'exam_code' => $examCode,
+            'locale' => $locale,
+        ]);
+
+        $aiRecommendations = $this->aiRecommendationService->getRecommendations($examResults, $locale);
+
+        if ($aiRecommendations !== null) {
+            Log::info('AI recommendations received successfully', [
+                'exam_code' => $examCode,
+            ]);
+            
+            return $aiRecommendations;
+        } else {
+            Log::warning('AI recommendations not available, returning exam results', [
+                'exam_code' => $examCode,
+            ]);
+            
+            return $examResults;
+        }
+    }
+
+    /**
+     * Validate and get exam enrollment
+     *
+     * @param string $examCode
+     * @return object
+     * @throws ExamProcessingException
+     */
+    public function validateAndGetExam(string $examCode): object
+    {
         $examEnrollment = $this->getExamEnrollment($examCode);
         
         if (!$examEnrollment) {
             throw ExamProcessingException::notFound(__('messages.exam_not_found'));
         }
 
-        // 2. Parse answers JSON
+        return $examEnrollment;
+    }
+
+    /**
+     * Parse exam answers from enrollment
+     *
+     * @param object $examEnrollment
+     * @return array
+     * @throws ExamProcessingException
+     */
+    public function parseExamAnswers(object $examEnrollment): array
+    {
         $answers = json_decode($examEnrollment->answers, true);
         
         if (!$answers || !is_array($answers)) {
             throw ExamProcessingException::invalidData(__('messages.invalid_exam_data'));
         }
 
-        // 3. Load CSV mapping and title order
-        $csvData = $this->loadCsvMapping();
+        return $answers;
+    }
+
+    /**
+     * Process exam data and calculate results
+     *
+     * @param array $answers
+     * @param object $examEnrollment
+     * @param array $csvData
+     * @return array
+     */
+    public function processExamData(array $answers, object $examEnrollment, array $csvData): array
+    {
         $csvMapping = $csvData['mapping'];
         $titleOrder = $csvData['title_order'];
 
-        // 4. Separate questions into branches (1xxxx-4xxxx) and environment (5xxxx)
+        // Separate questions into branches (1xxxx-4xxxx) and environment (5xxxx)
         $branchAnswers = [];
         $environmentAnswers = [];
         
@@ -76,45 +142,20 @@ class ExamResultService
         Log::info("Environment questions: " . count($environmentAnswers));
         Log::info("Questions not in CSV: " . count(array_diff_key($branchAnswers, $csvMapping)));
 
-        // 5. Calculate selected branches
+        // Calculate selected branches
         $selectedBranches = $this->calculateSelectedBranches($branchAnswers, $csvMapping, $titleOrder);
 
-        // 6. Calculate environment status (pass all answers and csvMapping)
+        // Calculate environment status
         $environmentStatus = $this->calculateEnvironmentStatus($answers, $csvMapping);
 
-        // 7. Prepare exam results
-        $examResults = [
+        // Prepare exam results
+        return [
             'job_title' => $examEnrollment->job_title ?? null,
             'industry' => $examEnrollment->industry ?? null,
             'seniority' => $examEnrollment->seniority ?? null,
             'selected_branches' => $selectedBranches,
             'environment_status' => $environmentStatus,
         ];
-
-        // 8. Get AI recommendations
-        $locale = App::getLocale();
-        Log::info('Getting AI recommendations', [
-            'exam_code' => $examCode,
-            'locale' => $locale,
-        ]);
-
-        $aiRecommendations = $this->aiRecommendationService->getRecommendations($examResults, $locale);
-
-        if ($aiRecommendations !== null) {
-            Log::info('AI recommendations received successfully', [
-                'exam_code' => $examCode,
-            ]);
-            
-            // 9. Return AI response as the main result
-            return $aiRecommendations;
-        } else {
-            Log::warning('AI recommendations not available, returning exam results', [
-                'exam_code' => $examCode,
-            ]);
-            
-            // 9. Return exam results if AI not available
-            return $examResults;
-        }
     }
 
     /**
@@ -137,7 +178,7 @@ class ExamResultService
      * @return array Returns ['mapping' => [...], 'title_order' => [...]]
      * @throws ExamProcessingException
      */
-    private function loadCsvMapping(): array
+    public function loadCsvMapping(): array
     {
         $csvPath = public_path('AcademicFinderAlgorithm.csv');
         

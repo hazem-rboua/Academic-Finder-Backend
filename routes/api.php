@@ -25,6 +25,7 @@ Route::prefix('invitations')->group(function () {
 // Exam results routes (public)
 Route::prefix('exam-results')->group(function () {
     Route::post('/process', [ExamResultController::class, 'process']);
+    Route::get('/status/{jobId}', [ExamResultController::class, 'status']);
 });
 
 // Protected routes

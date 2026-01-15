@@ -32,10 +32,13 @@ return [
 
     // Exam Results
     'exam_processed_successfully' => 'تمت معالجة نتائج الامتحان بنجاح',
+    'exam_processing_started' => 'بدأت معالجة الامتحان',
+    'exam_processing_failed' => 'فشل بدء معالجة الامتحان',
     'exam_not_found' => 'الامتحان غير موجود',
     'invalid_exam_data' => 'بيانات الامتحان غير صالحة',
     'csv_file_not_found' => 'ملف CSV للخريطة غير موجود',
     'csv_file_read_error' => 'خطأ في قراءة ملف CSV للخريطة',
+    'job_not_found' => 'المهمة غير موجودة',
 
     // Validation
     'validation_error' => 'خطأ في التحقق',
