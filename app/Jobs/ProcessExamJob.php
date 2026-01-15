@@ -94,16 +94,13 @@ class ProcessExamJob implements ShouldQueue
             Log::info('AI recommendations completed', [
                 'job_id' => $this->jobId,
                 'duration' => round($duration, 2),
-                'has_recommendations' => $aiRecommendations !== null,
             ]);
 
             // Step 7: Prepare final result (95%)
             $job->updateProgress(95, 'Finalizing results...');
-            
-            $finalResult = $aiRecommendations ?? $examResults;
 
             // Step 8: Mark as completed (100%)
-            $job->markAsCompleted($finalResult);
+            $job->markAsCompleted($aiRecommendations);
             
             Log::info('Exam processing job completed', [
                 'job_id' => $this->jobId,

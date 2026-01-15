@@ -149,8 +149,8 @@ class AsyncExamProcessingTest extends TestCase
             'job_id' => 'test-job-id-error',
             'exam_code' => 'TEST_EXAM',
             'status' => 'failed',
-            'progress' => 10,
-            'error_message' => 'Exam not found',
+            'progress' => 25,
+            'error_message' => 'AI API error (HTTP 500): Internal server error',
             'started_at' => now()->subSeconds(5),
             'completed_at' => now(),
         ]);
@@ -162,7 +162,7 @@ class AsyncExamProcessingTest extends TestCase
                 'success' => false,
                 'data' => [
                     'status' => 'failed',
-                    'error_message' => 'Exam not found',
+                    'error_message' => 'AI API error (HTTP 500): Internal server error',
                 ],
             ]);
     }

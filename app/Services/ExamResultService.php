@@ -53,21 +53,14 @@ class ExamResultService
             'locale' => $locale,
         ]);
 
+        // This will throw an exception if AI fails
         $aiRecommendations = $this->aiRecommendationService->getRecommendations($examResults, $locale);
 
-        if ($aiRecommendations !== null) {
-            Log::info('AI recommendations received successfully', [
-                'exam_code' => $examCode,
-            ]);
-            
-            return $aiRecommendations;
-        } else {
-            Log::warning('AI recommendations not available, returning exam results', [
-                'exam_code' => $examCode,
-            ]);
-            
-            return $examResults;
-        }
+        Log::info('AI recommendations received successfully', [
+            'exam_code' => $examCode,
+        ]);
+        
+        return $aiRecommendations;
     }
 
     /**

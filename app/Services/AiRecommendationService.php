@@ -63,13 +63,25 @@ class AiRecommendationService
 
                 return $response->json();
             } else {
+                $errorMessage = 'AI API returned error';
+                $statusCode = $response->status();
+                
+                // Try to get error message from response
+                try {
+                    $responseBody = $response->json();
+                    $errorMessage = $responseBody['message'] ?? $responseBody['error'] ?? $errorMessage;
+                } catch (\Exception $e) {
+                    // Use raw body if JSON parsing fails
+                    $errorMessage = $response->body() ?: $errorMessage;
+                }
+                
                 Log::error('AI API returned error response', [
-                    'status_code' => $response->status(),
+                    'status_code' => $statusCode,
                     'duration_ms' => $duration,
-                    'response_body' => $response->body(),
+                    'error_message' => $errorMessage,
                 ]);
 
-                return null;
+                throw new Exception("AI API error (HTTP {$statusCode}): {$errorMessage}");
             }
         } catch (Exception $e) {
             $duration = round((microtime(true) - $startTime) * 1000, 2);
@@ -80,7 +92,8 @@ class AiRecommendationService
                 'url' => $url,
             ]);
 
-            return null;
+            // Re-throw the exception so the job can handle it
+            throw $e;
         }
     }
 

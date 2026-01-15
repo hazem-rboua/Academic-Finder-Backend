@@ -90,11 +90,17 @@ Frontend → POST /api/exam-results/process
   "success": false,
   "data": {
     "status": "failed",
-    "error_message": "Exam not found",
+    "error_message": "AI API error (HTTP 500): Internal server error",
     "completed_at": "2026-01-15T10:30:05Z"
   }
 }
 ```
+
+**Common Error Messages**:
+- `"Exam not found"` - Invalid exam code
+- `"AI API error (HTTP 500): Internal server error"` - AI service error
+- `"AI API error (HTTP 503): Service temporarily unavailable"` - AI service down
+- Connection timeout or network errors from AI service
 
 ## Frontend Integration
 
