@@ -35,12 +35,17 @@ class AiRecommendationService
             'url' => $url,
             'locale' => $locale,
             'exam_data_keys' => array_keys($examResults),
+            'request_body' => $examResults, // Log full request body
         ]);
 
         $startTime = microtime(true);
 
         try {
             $response = Http::timeout($timeout)
+                ->withHeaders([
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])
                 ->retry($retryTimes, function ($attempt) {
                     // Exponential backoff: 1s, 2s, 4s
                     return 1000 * pow(2, $attempt - 1);
@@ -59,26 +64,34 @@ class AiRecommendationService
                 Log::info('AI API request successful', [
                     'duration_ms' => $duration,
                     'status_code' => $response->status(),
+                    'response_preview' => substr($response->body(), 0, 500), // Log first 500 chars
                 ]);
 
                 return $response->json();
             } else {
                 $errorMessage = 'AI API returned error';
                 $statusCode = $response->status();
+                $responseBody = $response->body();
                 
-                // Try to get error message from response
+                // Try to get error message from JSON response
                 try {
-                    $responseBody = $response->json();
-                    $errorMessage = $responseBody['message'] ?? $responseBody['error'] ?? $errorMessage;
+                    $jsonResponse = $response->json();
+                    $errorMessage = $jsonResponse['message'] ?? $jsonResponse['error'] ?? $jsonResponse['detail'] ?? $errorMessage;
                 } catch (\Exception $e) {
-                    // Use raw body if JSON parsing fails
-                    $errorMessage = $response->body() ?: $errorMessage;
+                    // If not JSON, check if it's HTML (common for 503 errors)
+                    if (str_contains($responseBody, '<!DOCTYPE') || str_contains($responseBody, '<html')) {
+                        $errorMessage = 'Server returned HTML error page (likely proxy/gateway issue)';
+                    } else {
+                        $errorMessage = substr($responseBody, 0, 200) ?: $errorMessage;
+                    }
                 }
                 
                 Log::error('AI API returned error response', [
                     'status_code' => $statusCode,
                     'duration_ms' => $duration,
                     'error_message' => $errorMessage,
+                    'response_body_preview' => substr($responseBody, 0, 1000), // Log first 1000 chars
+                    'content_type' => $response->header('Content-Type'),
                 ]);
 
                 throw new Exception("AI API error (HTTP {$statusCode}): {$errorMessage}");
