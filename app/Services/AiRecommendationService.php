@@ -31,11 +31,16 @@ class AiRecommendationService
         $endpoint = $locale === 'ar' ? '/job-bar/recommend/ar' : '/job-bar/recommend';
         $url = $baseUrl . $endpoint;
 
+        // Remove null fields from request
+        $requestData = array_filter($examResults, function ($value) {
+            return $value !== null;
+        });
+
         Log::info('Calling AI API for job recommendations', [
             'url' => $url,
             'locale' => $locale,
-            'exam_data_keys' => array_keys($examResults),
-            'request_body' => $examResults, // Log full request body
+            'exam_data_keys' => array_keys($requestData),
+            'request_body' => $requestData, // Log full request body (without nulls)
         ]);
 
         $startTime = microtime(true);
@@ -56,7 +61,7 @@ class AiRecommendationService
                     ]);
                     return true;
                 })
-                ->post($url, $examResults);
+                ->post($url, $requestData);
 
             $duration = round((microtime(true) - $startTime) * 1000, 2);
 
