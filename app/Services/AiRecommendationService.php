@@ -27,8 +27,10 @@ class AiRecommendationService
         $timeout = config('services.ai_api.timeout', 10);
         $retryTimes = config('services.ai_api.retry_times', 3);
 
-        // Determine endpoint based on locale
-        $endpoint = $locale === 'ar' ? '/job-bar/recommend/ar' : '/job-bar/recommend';
+        // Determine endpoint based on locale (support values like "ar-SA")
+        $normalizedLocale = strtolower(trim($locale));
+        $isArabic = str_starts_with($normalizedLocale, 'ar');
+        $endpoint = $isArabic ? '/job-bar/recommend/ar' : '/job-bar/recommend';
         $url = $baseUrl . $endpoint;
 
         // Remove null fields from request
