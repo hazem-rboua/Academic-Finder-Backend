@@ -162,6 +162,7 @@ class AsyncExamProcessingTest extends TestCase
                 'success' => false,
                 'data' => [
                     'status' => 'failed',
+                    'progress' => 25,
                     'error_message' => 'AI API error (HTTP 500): Internal server error',
                 ],
             ]);

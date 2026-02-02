@@ -264,7 +264,8 @@ class ExamResultController extends Controller
 
         $responseData = [
             'status' => $job->status,
-            'progress' => $job->progress,
+            // Return UI-friendly progress as the primary progress value
+            'progress' => $displayProgress,
             'display_progress' => $displayProgress,
             'display_progress_is_estimated' => $displayProgressIsEstimated,
             // Debug fields to make it obvious why display_progress is/ isn't moving.
