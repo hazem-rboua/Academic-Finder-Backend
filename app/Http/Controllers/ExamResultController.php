@@ -29,15 +29,13 @@ class ExamResultController extends Controller
         // While waiting on AI we sit at 25%. Smoothly ramp UI towards 90% over ~40 seconds.
         if ($job->status === 'processing' && $progress === 25) {
             // Use a stable timestamp; updated_at may not be reliable for elapsed calculations.
-            // We approximate AI-wait start as a few seconds after job started.
+            // We approximate AI-wait start as job start time.
             $start = $job->started_at ?? $job->created_at;
-            $elapsedSinceStart = $start ? now()->diffInSeconds($start) : 0;
-            $aiStartOffsetSeconds = 5; // parsing/calculation usually finishes quickly
-            $elapsedSeconds = max(0, $elapsedSinceStart - $aiStartOffsetSeconds);
+            $elapsedSeconds = $start ? now()->diffInSeconds($start) : 0;
 
             $min = 25;
             $max = 90;
-            $duration = 40; // seconds (AI typically 30-40s)
+            $duration = 30; // seconds (AI typically ~30s, adjust if needed)
 
             $ratio = $duration > 0 ? min(1, $elapsedSeconds / $duration) : 1;
             $display = (int) floor($min + ($max - $min) * $ratio);
