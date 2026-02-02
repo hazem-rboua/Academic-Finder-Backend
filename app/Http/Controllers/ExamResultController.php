@@ -28,8 +28,12 @@ class ExamResultController extends Controller
 
         // While waiting on AI we sit at 25%. Smoothly ramp UI towards 90% over ~40 seconds.
         if ($job->status === 'processing' && $progress === 25) {
-            $start = $job->updated_at ?? $job->started_at ?? $job->created_at;
-            $elapsedSeconds = $start ? now()->diffInSeconds($start) : 0;
+            // Use a stable timestamp; updated_at may not be reliable for elapsed calculations.
+            // We approximate AI-wait start as a few seconds after job started.
+            $start = $job->started_at ?? $job->created_at;
+            $elapsedSinceStart = $start ? now()->diffInSeconds($start) : 0;
+            $aiStartOffsetSeconds = 5; // parsing/calculation usually finishes quickly
+            $elapsedSeconds = max(0, $elapsedSinceStart - $aiStartOffsetSeconds);
 
             $min = 25;
             $max = 90;
@@ -273,7 +277,10 @@ class ExamResultController extends Controller
         return response()->json([
             'success' => $job->status !== 'failed',
             'data' => $responseData,
-        ], 200);
+        ], 200)
+            // Prevent browsers/CDNs from caching status responses
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 }
 
