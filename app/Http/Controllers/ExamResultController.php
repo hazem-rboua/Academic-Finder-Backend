@@ -25,13 +25,18 @@ class ExamResultController extends Controller
         $progress = (int) $job->progress;
         $display = $progress;
         $isEstimated = false;
+        $elapsedSeconds = 0.0;
 
         // While waiting on AI we sit at 25%. We can only estimate based on elapsed time.
         if ($job->status === 'processing' && $progress === 25) {
             // Use a stable timestamp; updated_at may not be reliable for elapsed calculations.
             // We approximate AI-wait start as job start time.
             $start = $job->started_at ?? $job->created_at;
-            $elapsedSeconds = $start ? now()->diffInSeconds($start) : 0;
+            if ($start) {
+                // Millisecond precision to avoid "stuck at 25" when polling within the same second.
+                $elapsedMs = now()->diffInMilliseconds($start);
+                $elapsedSeconds = max(0.0, $elapsedMs / 1000.0);
+            }
 
             $min = 25;
             $max = 90;
@@ -44,7 +49,7 @@ class ExamResultController extends Controller
             $isEstimated = true;
         }
 
-        return [$display, $isEstimated];
+        return [$display, $isEstimated, $elapsedSeconds];
     }
 
     public function __construct(ExamResultService $examResultService)
@@ -254,13 +259,17 @@ class ExamResultController extends Controller
             ], 404);
         }
 
-        [$displayProgress, $displayProgressIsEstimated] = $this->computeDisplayProgress($job);
+        [$displayProgress, $displayProgressIsEstimated, $displayProgressElapsedSeconds] = $this->computeDisplayProgress($job);
 
         $responseData = [
             'status' => $job->status,
             'progress' => $job->progress,
             'display_progress' => $displayProgress,
             'display_progress_is_estimated' => $displayProgressIsEstimated,
+            // Debug fields to make it obvious why display_progress is/ isn't moving.
+            // Safe for frontend usage too.
+            'display_progress_elapsed_seconds' => round($displayProgressElapsedSeconds, 3),
+            'server_now' => now()->toIso8601String(),
             'current_step' => $job->current_step,
             'started_at' => $job->started_at?->toIso8601String(),
         ];
