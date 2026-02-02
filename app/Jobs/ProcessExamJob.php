@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -53,9 +54,12 @@ class ProcessExamJob implements ShouldQueue
         }
 
         try {
+            // Ensure translations match the locale used to start the job
+            App::setLocale($this->locale);
+
             // Step 1: Mark as processing (0%)
             $job->markAsProcessing();
-            $job->updateProgress(0, 'Starting exam processing...');
+            $job->updateProgress(0, __('messages.exam_processing_step_starting'));
             
             Log::info('Processing exam job', [
                 'job_id' => $this->jobId,
@@ -64,23 +68,23 @@ class ProcessExamJob implements ShouldQueue
             ]);
 
             // Step 2: Validate exam exists (5%)
-            $job->updateProgress(5, 'Validating exam...');
+            $job->updateProgress(5, __('messages.exam_processing_step_validating_exam'));
             $examEnrollment = $examResultService->validateAndGetExam($this->examCode);
 
             // Step 3: Parse exam answers (10%)
-            $job->updateProgress(10, 'Parsing exam answers...');
+            $job->updateProgress(10, __('messages.exam_processing_step_parsing_answers'));
             $answers = $examResultService->parseExamAnswers($examEnrollment);
 
             // Step 4: Load CSV mapping and calculate (15%)
-            $job->updateProgress(15, 'Loading calculation data...');
+            $job->updateProgress(15, __('messages.exam_processing_step_loading_calculation_data'));
             $csvData = $examResultService->loadCsvMapping();
             
             // Step 5: Calculate branches and environment (20%)
-            $job->updateProgress(20, 'Calculating job compatibility...');
+            $job->updateProgress(20, __('messages.exam_processing_step_calculating_compatibility'));
             $examResults = $examResultService->processExamData($answers, $examEnrollment, $csvData);
 
             // Step 6: Call AI API (25% -> 90%)
-            $job->updateProgress(25, 'Getting AI recommendations...');
+            $job->updateProgress(25, __('messages.exam_processing_step_getting_ai_recommendations'));
             
             $startTime = microtime(true);
             $aiRecommendations = $aiRecommendationService->getRecommendations($examResults, $this->locale);
@@ -89,7 +93,7 @@ class ProcessExamJob implements ShouldQueue
             // Simulate progress during AI call
             // The AI call is synchronous, so we can't update in real-time
             // But we set it to 90% after completion
-            $job->updateProgress(90, 'Processing AI response...');
+            $job->updateProgress(90, __('messages.exam_processing_step_processing_ai_response'));
 
             Log::info('AI recommendations completed', [
                 'job_id' => $this->jobId,
@@ -97,7 +101,7 @@ class ProcessExamJob implements ShouldQueue
             ]);
 
             // Step 7: Prepare final result (95%)
-            $job->updateProgress(95, 'Finalizing results...');
+            $job->updateProgress(95, __('messages.exam_processing_step_finalizing_results'));
 
             // Step 8: Mark as completed (100%)
             $job->markAsCompleted($aiRecommendations);
