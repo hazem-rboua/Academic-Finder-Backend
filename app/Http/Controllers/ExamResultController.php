@@ -26,7 +26,7 @@ class ExamResultController extends Controller
         $display = $progress;
         $isEstimated = false;
 
-        // While waiting on AI we sit at 25%. Smoothly ramp UI towards 90% over ~40 seconds.
+        // While waiting on AI we sit at 25%. We can only estimate based on elapsed time.
         if ($job->status === 'processing' && $progress === 25) {
             // Use a stable timestamp; updated_at may not be reliable for elapsed calculations.
             // We approximate AI-wait start as job start time.
@@ -35,12 +35,13 @@ class ExamResultController extends Controller
 
             $min = 25;
             $max = 90;
-            $duration = 30; // seconds (AI typically ~30s, adjust if needed)
+            $duration = 35; // seconds (AI typically 30–40s)
 
             $ratio = $duration > 0 ? min(1, $elapsedSeconds / $duration) : 1;
             $display = (int) floor($min + ($max - $min) * $ratio);
             $display = max($min, min($max, $display));
-            $isEstimated = $display > $progress;
+            // Mark estimated whenever we're in the AI-wait window, even if display==25 at t=0.
+            $isEstimated = true;
         }
 
         return [$display, $isEstimated];
