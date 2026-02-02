@@ -34,8 +34,9 @@ class ExamResultController extends Controller
             $start = $job->started_at ?? $job->created_at;
             if ($start) {
                 // Millisecond precision to avoid "stuck at 25" when polling within the same second.
-                $elapsedMs = now()->diffInMilliseconds($start);
-                $elapsedSeconds = max(0.0, $elapsedMs / 1000.0);
+                // Use start->diff to avoid negative values depending on Carbon defaults.
+                $elapsedMs = $start->diffInMilliseconds(now(), true);
+                $elapsedSeconds = $elapsedMs / 1000.0;
             }
 
             $min = 25;
