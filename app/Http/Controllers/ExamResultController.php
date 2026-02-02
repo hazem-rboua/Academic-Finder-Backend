@@ -16,6 +16,34 @@ class ExamResultController extends Controller
 {
     protected ExamResultService $examResultService;
 
+    /**
+     * Compute a UI-friendly progress value when AI step has no real progress.
+     * This is only an estimate and should not be treated as ground truth.
+     */
+    private function computeDisplayProgress(ExamProcessingJob $job): array
+    {
+        $progress = (int) $job->progress;
+        $display = $progress;
+        $isEstimated = false;
+
+        // While waiting on AI we sit at 25%. Smoothly ramp UI towards 90% over ~40 seconds.
+        if ($job->status === 'processing' && $progress === 25) {
+            $start = $job->updated_at ?? $job->started_at ?? $job->created_at;
+            $elapsedSeconds = $start ? now()->diffInSeconds($start) : 0;
+
+            $min = 25;
+            $max = 90;
+            $duration = 40; // seconds (AI typically 30-40s)
+
+            $ratio = $duration > 0 ? min(1, $elapsedSeconds / $duration) : 1;
+            $display = (int) floor($min + ($max - $min) * $ratio);
+            $display = max($min, min($max, $display));
+            $isEstimated = $display > $progress;
+        }
+
+        return [$display, $isEstimated];
+    }
+
     public function __construct(ExamResultService $examResultService)
     {
         $this->examResultService = $examResultService;
@@ -165,6 +193,8 @@ class ExamResultController extends Controller
                             properties: [
                                 new OA\Property(property: "status", type: "string", enum: ["pending", "processing", "completed", "failed"], description: "Current job status"),
                                 new OA\Property(property: "progress", type: "integer", description: "Progress percentage (0-100)", example: 65),
+                                new OA\Property(property: "display_progress", type: "integer", description: "UI-friendly progress. During AI processing, this may be time-based (estimated) while progress stays at 25%. Range 0-100.", example: 72),
+                                new OA\Property(property: "display_progress_is_estimated", type: "boolean", description: "True when display_progress is estimated (time-based) rather than a real milestone.", example: true),
                                 new OA\Property(property: "current_step", type: "string", nullable: true, description: "Human-readable current step", example: "Getting AI recommendations..."),
                                 new OA\Property(property: "started_at", type: "string", format: "date-time", nullable: true, description: "When job started processing", example: "2026-01-15T10:30:00+00:00"),
                                 new OA\Property(
@@ -190,6 +220,8 @@ class ExamResultController extends Controller
                         "data" => [
                             "status" => "processing",
                             "progress" => 65,
+                            "display_progress" => 72,
+                            "display_progress_is_estimated" => true,
                             "current_step" => "Getting AI recommendations...",
                             "started_at" => "2026-01-15T10:30:00+00:00"
                         ]
@@ -219,9 +251,13 @@ class ExamResultController extends Controller
             ], 404);
         }
 
+        [$displayProgress, $displayProgressIsEstimated] = $this->computeDisplayProgress($job);
+
         $responseData = [
             'status' => $job->status,
             'progress' => $job->progress,
+            'display_progress' => $displayProgress,
+            'display_progress_is_estimated' => $displayProgressIsEstimated,
             'current_step' => $job->current_step,
             'started_at' => $job->started_at?->toIso8601String(),
         ];
