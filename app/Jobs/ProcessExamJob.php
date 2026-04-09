@@ -23,7 +23,7 @@ class ProcessExamJob implements ShouldQueue
      *
      * @var int
      */
-    public $timeout = 150;
+    public $timeout = 300;
 
     /**
      * The number of times the job may be attempted.
