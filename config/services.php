@@ -35,6 +35,16 @@ return [
         ],
     ],
 
+    // ADDITIVE 2026-06-16 — Academic Finder PDF generation
+    'af_frontend' => [
+        'url' => env('AF_FRONTEND_URL', 'https://academicfinder.twindix.com'),
+    ],
+    'browsershot' => [
+        'node_binary' => env('BROWSERSHOT_NODE_BINARY'),
+        'npm_binary'  => env('BROWSERSHOT_NPM_BINARY'),
+        'chrome_path' => env('BROWSERSHOT_CHROME_PATH'),
+    ],
+
     'ai_api' => [
         'base_url' => env('AI_API_BASE_URL', 'https://acdmic-ai.twindix.com'),
         'timeout' => (int) env('AI_API_TIMEOUT', 60),
