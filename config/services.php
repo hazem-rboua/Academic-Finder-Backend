@@ -40,8 +40,9 @@ return [
         'url' => env('AF_FRONTEND_URL', 'https://academicfinder.twindix.com'),
     ],
     'browsershot' => [
-        'node_binary' => env('BROWSERSHOT_NODE_BINARY', '/opt/alt/alt-nodejs20/root/usr/bin/node'),
-        'npm_binary'  => env('BROWSERSHOT_NPM_BINARY', '/opt/alt/alt-nodejs20/root/usr/bin/npm'),
+        'node_binary' => env('BROWSERSHOT_NODE_BINARY'),
+        'npm_binary'  => env('BROWSERSHOT_NPM_BINARY'),
+        'chrome_path' => env('BROWSERSHOT_CHROME_PATH'),
     ],
 
     'ai_api' => [

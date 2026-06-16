@@ -54,27 +54,33 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             // Run pipeline: validate + algorithm + AI
             $aiResult = $examResultService->processExamResults($this->examCode);
 
+            Log::info('AF AI result shape', [
+                'top_keys'   => array_keys($aiResult ?? []),
+                'jobs_count' => count($aiResult['recommended_jobs'] ?? $aiResult['recommendedJobs'] ?? []),
+            ]);
+
             $job->markAsCompleted($aiResult);
 
-            // Map AI response keys to template keys
-            // AI returns: {faculty, major_1, major_2, major_3, reasoning}
-            $rawJobs = $aiResult['recommended_jobs'] ?? [];
+            // Defensive mapping — handles both snake_case and camelCase AI response shapes
+            $rawJobs = $aiResult['recommended_jobs'] ?? $aiResult['recommendedJobs'] ?? [];
             $jobs = array_map(function (array $item) use ($job): array {
-                $lang      = $job->lang ?? 'en';
-                $majors    = array_filter([
-                    $item['major_1'] ?? null,
-                    $item['major_2'] ?? null,
-                    $item['major_3'] ?? null,
-                ]);
-                $majorsStr = implode(' · ', $majors);
-                $prefix    = $lang === 'ar'
-                    ? ($majorsStr ? "التخصصات: {$majorsStr}\n\n" : '')
-                    : ($majorsStr ? "Majors: {$majorsStr}\n\n" : '');
-
-                return [
-                    'jobTitle'      => $item['faculty'] ?? '',
-                    'justification' => $prefix . ($item['reasoning'] ?? ''),
-                ];
+                $lang  = $job->lang ?? 'en';
+                $title = $item['jobTitle'] ?? $item['faculty'] ?? $item['job_title'] ?? '';
+                if (!empty($item['justification'])) {
+                    $body = $item['justification'];
+                } else {
+                    $majors    = array_filter([
+                        $item['major_1'] ?? null,
+                        $item['major_2'] ?? null,
+                        $item['major_3'] ?? null,
+                    ]);
+                    $majorsStr = implode(' · ', $majors);
+                    $prefix    = $majorsStr
+                        ? ($lang === 'ar' ? "التخصصات: {$majorsStr}\n\n" : "Majors: {$majorsStr}\n\n")
+                        : '';
+                    $body = $prefix . ($item['reasoning'] ?? '');
+                }
+                return ['jobTitle' => $title, 'justification' => $body];
             }, $rawJobs);
 
             // Render Blade → HTML → PDF
@@ -88,15 +94,19 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
 
             @mkdir(dirname($pdfPath), 0775, true);
 
-            Browsershot::html($html)
-                ->setNodeBinary('/opt/alt/alt-nodejs20/root/usr/bin/node')
-                ->setNpmBinary('/opt/alt/alt-nodejs20/root/usr/bin/npm')
-                ->setChromePath('/home/twindix/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome')
-                ->noSandbox()
-                ->showBackground()
-                ->format('A4')
-                ->margins(0, 0, 0, 0)
-                ->savePdf($pdfPath);
+            $bs = Browsershot::html($html);
+
+            if ($node   = config('services.browsershot.node_binary'))  { $bs->setNodeBinary($node); }
+            if ($npm    = config('services.browsershot.npm_binary'))    { $bs->setNpmBinary($npm); }
+            if ($chrome = config('services.browsershot.chrome_path'))   { $bs->setChromePath($chrome); }
+
+            $bs->noSandbox()
+               ->showBackground()
+               ->waitUntilNetworkIdle()
+               ->timeout(60)
+               ->format('A4')
+               ->margins(0, 0, 0, 0)
+               ->savePdf($pdfPath);
 
             $job->update([
                 'pdf_ready' => true,
