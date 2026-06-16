@@ -100,6 +100,9 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             if ($npm    = config('services.browsershot.npm_binary'))    { $bs->setNpmBinary($npm); }
             if ($chrome = config('services.browsershot.chrome_path'))   { $bs->setChromePath($chrome); }
 
+            // Force Symfony Process to use fork/exec instead of posix_spawn (blocked on cPanel/CloudLinux)
+            putenv('SYMFONY_PROCESS_POSIX_SPAWN=0');
+
             $bs->noSandbox()
                ->showBackground()
                ->waitUntilNetworkIdle()
@@ -107,11 +110,11 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                ->format('A4')
                ->margins(0, 0, 0, 0)
                ->addChromiumArguments([
-                   '--disable-dev-shm-usage',
-                   '--disable-gpu',
-                   '--no-zygote',
-                   '--single-process',
-                   '--disable-setuid-sandbox',
+                   'disable-dev-shm-usage',
+                   'disable-gpu',
+                   'no-zygote',
+                   'single-process',
+                   'disable-setuid-sandbox',
                ])
                ->savePdf($pdfPath);
 
