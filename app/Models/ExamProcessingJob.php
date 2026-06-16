@@ -28,6 +28,10 @@ class ExamProcessingJob extends Model
         'error_message',
         'started_at',
         'completed_at',
+        'pdf_ready',
+        'pdf_path',
+        'user_name',
+        'lang',
     ];
 
     /**
@@ -40,6 +44,7 @@ class ExamProcessingJob extends Model
         'progress' => 'integer',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
+        'pdf_ready' => 'boolean',
     ];
 
     /**
