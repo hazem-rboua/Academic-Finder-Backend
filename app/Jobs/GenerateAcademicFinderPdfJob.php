@@ -106,6 +106,13 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                ->timeout(60)
                ->format('A4')
                ->margins(0, 0, 0, 0)
+               ->addChromiumArguments([
+                   '--disable-dev-shm-usage',
+                   '--disable-gpu',
+                   '--no-zygote',
+                   '--single-process',
+                   '--disable-setuid-sandbox',
+               ])
                ->savePdf($pdfPath);
 
             $job->update([
