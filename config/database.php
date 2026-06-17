@@ -118,7 +118,7 @@ return [
             'url' => env('EXTERNAL_DB_URL'),
             'host' => env('EXTERNAL_DB_HOST', '127.0.0.1'),
             'port' => env('EXTERNAL_DB_PORT', '3306'),
-            'database' => env('EXTERNAL_DB_DATABASE', 'twindix_api'),
+            'database' => env('TESTING_EXTERNAL_DB_DATABASE', env('EXTERNAL_DB_DATABASE', 'twindix_api')),
             'username' => env('EXTERNAL_DB_USERNAME', 'root'),
             'password' => env('EXTERNAL_DB_PASSWORD', ''),
             'unix_socket' => env('EXTERNAL_DB_SOCKET', ''),
