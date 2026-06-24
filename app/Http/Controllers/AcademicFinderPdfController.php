@@ -26,7 +26,7 @@ class AcademicFinderPdfController extends Controller
             ->latest()
             ->first();
 
-        if ($done && file_exists(storage_path('app/reports/' . $examCode . '.pdf'))) {
+        if ($done && file_exists(storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf'))) {
             return response()->json([
                 'success' => true,
                 'data'    => ['exam_code' => $examCode, 'status' => 'completed'],
@@ -56,7 +56,7 @@ class AcademicFinderPdfController extends Controller
             ], fn ($v) => $v !== null));
         }
 
-        GenerateAcademicFinderPdfJob::dispatch($examCode);
+        GenerateAcademicFinderPdfJob::dispatch($examCode, $lang);
 
         return response()->json([
             'success' => true,
@@ -72,18 +72,21 @@ class AcademicFinderPdfController extends Controller
             return response()->json(['success' => false, 'message' => 'exam_code is required'], 422);
         }
 
+        $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'en';
+        $fileReady = file_exists(storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf'));
+
         $job = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
 
-        if (!$job) {
+        if (!$fileReady && !$job) {
             return response()->json([
                 'success' => true,
-                'data'    => ['exam_code' => $examCode, 'ready' => false, 'status' => 'not_started'],
+                'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'ready' => false, 'status' => 'not_started'],
             ]);
         }
 
-        if ($job->pdf_ready) {
+        if ($fileReady) {
             $status = 'completed';
-        } elseif ($job->status === 'failed') {
+        } elseif ($job && $job->status === 'failed') {
             $status = 'failed';
         } else {
             $status = 'processing';
@@ -91,7 +94,7 @@ class AcademicFinderPdfController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['exam_code' => $examCode, 'ready' => (bool) $job->pdf_ready, 'status' => $status],
+            'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'ready' => $fileReady, 'status' => $status],
         ]);
     }
 
@@ -103,22 +106,14 @@ class AcademicFinderPdfController extends Controller
             return response()->json(['success' => false, 'message' => 'exam_code is required'], 422);
         }
 
-        $job = ExamProcessingJob::where('exam_code', $examCode)
-            ->where('pdf_ready', true)
-            ->latest()
-            ->first();
+        $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'en';
+        $fullPath = storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf');
 
-        if (!$job || !$job->pdf_path) {
+        if (!file_exists($fullPath)) {
             return response()->json(['success' => false, 'message' => 'PDF not ready yet'], 404);
         }
 
-        $fullPath = $job->pdf_path;   // stored as absolute path
-
-        if (!file_exists($fullPath)) {
-            return response()->json(['success' => false, 'message' => 'PDF file not found on disk'], 404);
-        }
-
-        $filename = 'academic-finder-report-' . $examCode . '.pdf';
+        $filename = 'academic-finder-report-' . $examCode . '-' . $lang . '.pdf';
 
         return response()->download($fullPath, $filename, [
             'Content-Type'        => 'application/pdf',

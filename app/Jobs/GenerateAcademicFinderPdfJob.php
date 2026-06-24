@@ -20,7 +20,7 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
     public $timeout = 180;
     public $tries   = 1;
 
-    public function __construct(public string $examCode) {}
+    public function __construct(public string $examCode, public ?string $lang = null) {}
 
     public function handle(ExamResultService $examResultService): void
     {
@@ -35,7 +35,8 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             ]);
         }
 
-        $pdfPath = storage_path('app/reports/' . $this->examCode . '.pdf');
+        $lang = in_array($this->lang, ['ar', 'en']) ? $this->lang : (in_array($job->lang, ['ar', 'en']) ? $job->lang : 'en');
+        $pdfPath = storage_path('app/reports/' . $this->examCode . '-' . $lang . '.pdf');
 
         // Idempotency: already done and file exists
         if ($job->pdf_ready && file_exists($pdfPath)) {
@@ -87,7 +88,7 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             $html = view('pdf.academic-finder-report', [
                 'code'        => $this->examCode,
                 'userName'    => $job->user_name ?: '—',
-                'lang'        => in_array($job->lang, ['ar', 'en']) ? $job->lang : 'en',
+                'lang'        => $lang,
                 'jobs'        => $jobs,
                 'logoDataUri' => $this->logoDataUri(),
             ])->render();
