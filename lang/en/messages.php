@@ -42,7 +42,7 @@ return [
     'exam_processing_step_getting_ai_recommendations' => 'Getting AI recommendations...',
     'exam_processing_step_processing_ai_response' => 'Processing AI response...',
     'exam_processing_step_finalizing_results' => 'Finalizing results...',
-    'exam_not_found' => 'Exam not found',
+    'exam_not_found' => 'Exam not found in the production environment. If this assessment was completed on the testing portal, please view its report from within that portal.',
     'invalid_exam_data' => 'Invalid exam data',
     'csv_file_not_found' => 'CSV mapping file not found',
     'csv_file_read_error' => 'Error reading CSV mapping file',
