@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Company\ProfileController;
 use App\Http\Controllers\ExamResultController;
+use App\Http\Controllers\AcademicFinderPdfController;
 use App\Http\Controllers\InvitationController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,10 @@ Route::prefix('invitations')->group(function () {
 Route::prefix('exam-results')->group(function () {
     Route::post('/process', [ExamResultController::class, 'process']);
     Route::get('/status/{jobId}', [ExamResultController::class, 'status']);
+    // ADDITIVE 2026-06-16 — Academic Finder PDF generation
+    Route::post('/generate', [AcademicFinderPdfController::class, 'generate']);
+    Route::get('/report-status', [AcademicFinderPdfController::class, 'reportStatus']);
+    Route::get('/report-pdf', [AcademicFinderPdfController::class, 'reportPdf']);
 });
 
 // Protected routes
