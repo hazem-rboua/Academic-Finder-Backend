@@ -113,6 +113,22 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'external_api_test' => [
+            'driver' => 'mysql',
+            'host' => env('EXTERNAL_DB_HOST', '127.0.0.1'),
+            'port' => env('EXTERNAL_DB_PORT', '3306'),
+            'database' => env('EXTERNAL_TEST_DB_DATABASE', 'twindix_test'),
+            'username' => env('EXTERNAL_DB_USERNAME', 'root'),
+            'password' => env('EXTERNAL_DB_PASSWORD', ''),
+            'unix_socket' => env('EXTERNAL_DB_SOCKET', ''),
+            'charset' => env('EXTERNAL_DB_CHARSET', 'utf8mb4'),
+            'collation' => env('EXTERNAL_DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'external_api' => [
             'driver' => 'mysql',
             'url' => env('EXTERNAL_DB_URL'),

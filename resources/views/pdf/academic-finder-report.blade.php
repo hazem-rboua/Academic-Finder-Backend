@@ -53,10 +53,10 @@
     .pdf-root .content-header img { height:28px; width:auto; }
     .pdf-root .content-header-meta { display:flex; gap:18px; font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:#7A879D; font-weight:500; }
     .pdf-root .content-header-meta strong { color:#0E1B3A; font-weight:600; letter-spacing:.06em; margin-{{ $startEdge }}:6px; }
-    .pdf-root .card { position:relative; background:linear-gradient(180deg,#FFF 0%,#FBFCFE 100%); border:1px solid #E2E8F2; border-radius:18px; padding:22px 26px 26px; margin-bottom:16px; overflow:hidden; box-shadow:0 1px 0 rgba(14,27,58,.02),0 12px 28px -18px rgba(14,27,58,.18); }
+    .pdf-root .card { position:relative; break-inside:avoid; page-break-inside:avoid; background:linear-gradient(180deg,#FFF 0%,#FBFCFE 100%); border:1px solid #E2E8F2; border-radius:18px; padding:22px 26px 26px; margin-bottom:16px; overflow:hidden; box-shadow:0 1px 0 rgba(14,27,58,.02),0 12px 28px -18px rgba(14,27,58,.18); }
     .pdf-root .card-stripe { position:absolute; top:0; {{ $startEdge }}:0; bottom:0; width:4px; background:linear-gradient(180deg,#001A82 0%,#1356BC 50%,#D4AF6A 100%); }
     .pdf-root .card-glow { position:absolute; top:-40px; {{ $endEdge }}:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(19,86,188,.07) 0%, rgba(19,86,188,0) 70%); }
-    .pdf-root .card-head { display:flex; align-items:center; gap:18px; margin-bottom:14px; position:relative; z-index:1; }
+    .pdf-root .card-head { break-inside:avoid; display:flex; align-items:center; gap:18px; margin-bottom:14px; position:relative; z-index:1; }
     .pdf-root .card-num { flex-shrink:0; width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,#1356BC 0%,#001A82 100%); color:#FFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; letter-spacing:.04em; font-family:"JetBrains Mono","Menlo","Courier New",monospace; box-shadow:0 8px 18px -8px rgba(19,86,188,.55); }
     .pdf-root .card-title { font-size:22px; line-height:1.2; font-weight:700; color:#0E1B3A; letter-spacing:-.015em; flex:1; }
     .pdf-root .card-body-wrap { position:relative; padding-{{ $startEdge }}:70px; }

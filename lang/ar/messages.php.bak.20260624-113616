@@ -42,7 +42,7 @@ return [
     'exam_processing_step_getting_ai_recommendations' => 'جارٍ الحصول على توصيات الذكاء الاصطناعي...',
     'exam_processing_step_processing_ai_response' => 'جارٍ معالجة استجابة الذكاء الاصطناعي...',
     'exam_processing_step_finalizing_results' => 'جارٍ إنهاء النتائج...',
-    'exam_not_found' => 'الاختبار غير موجود في بيئة الإنتاج. إذا تم حل هذا الاختبار على بيئة التجريب (testing)، فيُرجى عرض تقريره من داخل البورتال الخاص بها.',
+    'exam_not_found' => 'الامتحان غير موجود',
     'invalid_exam_data' => 'بيانات الامتحان غير صالحة',
     'csv_file_not_found' => 'ملف CSV للخريطة غير موجود',
     'csv_file_read_error' => 'خطأ في قراءة ملف CSV للخريطة',

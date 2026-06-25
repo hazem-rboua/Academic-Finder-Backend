@@ -11,6 +11,7 @@ return [
         'https://assessment.twindix.com',
     ],
     'allowed_origins_patterns' => ['/^https:\/\/.*\.twindix\.com$/'],
+
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
     'max_age' => 0,
