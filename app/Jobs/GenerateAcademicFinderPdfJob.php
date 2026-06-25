@@ -20,7 +20,7 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
     public $timeout = 180;
     public $tries   = 1;
 
-    public function __construct(public string $examCode, public ?string $lang = null) {}
+    public function __construct(public string $examCode, public ?string $lang = null, public ?string $env = null) {}
 
     public function handle(ExamResultService $examResultService): void
     {
@@ -36,7 +36,8 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
         }
 
         $lang = in_array($this->lang, ['ar', 'en']) ? $this->lang : (in_array($job->lang, ['ar', 'en']) ? $job->lang : 'en');
-        $pdfPath = storage_path('app/reports/' . $this->examCode . '-' . $lang . '.pdf');
+        $isTest = $this->env === 'testing';
+        $pdfPath = storage_path('app/reports/' . $this->examCode . '-' . $lang . ($isTest ? '.test' : '') . '.pdf');
 
         // Idempotency: already done and file exists
         if ($job->pdf_ready && file_exists($pdfPath)) {
@@ -53,6 +54,7 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             $job->markAsProcessing();
 
             // Run pipeline: validate + algorithm + AI
+            $examResultService->externalConnection = ($this->env === 'testing') ? 'external_api_test' : 'external_api';
             $aiResult = $examResultService->processExamResults($this->examCode);
 
             Log::info('AF AI result shape', [

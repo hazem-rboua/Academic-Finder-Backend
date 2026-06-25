@@ -10,6 +10,27 @@ use Illuminate\Support\Str;
 
 class AcademicFinderPdfController extends Controller
 {
+    // ADDITIVE: resolve environment. Explicit ?env= wins; else infer from
+    // Origin/Referer (front/back.twindix.com => testing). Default production.
+    private function resolveEnv(Request $request): string
+    {
+        $e = $request->input('env') ?? $request->query('env');
+        if (in_array($e, ['testing', 'production'], true)) {
+            return $e;
+        }
+        $origin = (string) ($request->header('origin') . ' ' . $request->header('referer'));
+        if (str_contains($origin, 'front.twindix.com') || str_contains($origin, 'back.twindix.com')) {
+            return 'testing';
+        }
+        return 'production';
+    }
+
+    private function pdfPath(string $examCode, string $lang, string $env): string
+    {
+        $suffix = $env === 'testing' ? '.test' : '';
+        return storage_path('app/reports/' . $examCode . '-' . $lang . $suffix . '.pdf');
+    }
+
     public function generate(Request $request): JsonResponse
     {
         $request->validate(['exam_code' => 'required|string']);
@@ -19,21 +40,20 @@ class AcademicFinderPdfController extends Controller
         $lang     = in_array($request->input('lang'), ['ar', 'en'])
             ? $request->input('lang')
             : 'en';
+        $env = $this->resolveEnv($request);
 
-        // Already done
         $done = ExamProcessingJob::where('exam_code', $examCode)
             ->where('pdf_ready', true)
             ->latest()
             ->first();
 
-        if ($done && file_exists(storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf'))) {
+        if ($done && file_exists($this->pdfPath($examCode, $lang, $env))) {
             return response()->json([
                 'success' => true,
-                'data'    => ['exam_code' => $examCode, 'status' => 'completed'],
+                'data'    => ['exam_code' => $examCode, 'env' => $env, 'status' => 'completed'],
             ]);
         }
 
-        // Find active tracking record or create one
         $job = ExamProcessingJob::where('exam_code', $examCode)
             ->whereIn('status', ['pending', 'processing'])
             ->latest()
@@ -49,18 +69,17 @@ class AcademicFinderPdfController extends Controller
                 'lang'      => $lang,
             ]);
         } else {
-            // Update meta if provided
             $job->update(array_filter([
                 'user_name' => $userName,
                 'lang'      => $lang,
             ], fn ($v) => $v !== null));
         }
 
-        GenerateAcademicFinderPdfJob::dispatch($examCode, $lang);
+        GenerateAcademicFinderPdfJob::dispatch($examCode, $lang, $env);
 
         return response()->json([
             'success' => true,
-            'data'    => ['exam_code' => $examCode, 'status' => 'processing'],
+            'data'    => ['exam_code' => $examCode, 'env' => $env, 'status' => 'processing'],
         ], 202);
     }
 
@@ -73,14 +92,15 @@ class AcademicFinderPdfController extends Controller
         }
 
         $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'en';
-        $fileReady = file_exists(storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf'));
+        $env  = $this->resolveEnv($request);
+        $fileReady = file_exists($this->pdfPath($examCode, $lang, $env));
 
         $job = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
 
         if (!$fileReady && !$job) {
             return response()->json([
                 'success' => true,
-                'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'ready' => false, 'status' => 'not_started'],
+                'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'env' => $env, 'ready' => false, 'status' => 'not_started'],
             ]);
         }
 
@@ -94,7 +114,7 @@ class AcademicFinderPdfController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'ready' => $fileReady, 'status' => $status],
+            'data'    => ['exam_code' => $examCode, 'lang' => $lang, 'env' => $env, 'ready' => $fileReady, 'status' => $status],
         ]);
     }
 
@@ -107,7 +127,8 @@ class AcademicFinderPdfController extends Controller
         }
 
         $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'en';
-        $fullPath = storage_path('app/reports/' . $examCode . '-' . $lang . '.pdf');
+        $env  = $this->resolveEnv($request);
+        $fullPath = $this->pdfPath($examCode, $lang, $env);
 
         if (!file_exists($fullPath)) {
             return response()->json(['success' => false, 'message' => 'PDF not ready yet'], 404);

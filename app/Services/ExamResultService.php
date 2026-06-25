@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\App;
 
 class ExamResultService
 {
+    /** ADDITIVE: external DB connection (external_api=prod, external_api_test=testing) */
+    public string $externalConnection = 'external_api';
+
     /**
      * AI Recommendation Service
      *
@@ -159,7 +162,7 @@ class ExamResultService
      */
     private function getExamEnrollment(string $examCode): ?object
     {
-        return DB::connection('external_api')
+        return DB::connection($this->externalConnection)
             ->table('exam_enrollments')
             ->where('code', $examCode)
             ->first();
