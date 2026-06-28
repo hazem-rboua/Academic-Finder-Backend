@@ -13,7 +13,10 @@ return [
     'allowed_origins_patterns' => ['/^https:\/\/.*\.twindix\.com$/'],
 
     'allowed_headers' => ['*'],
-    'exposed_headers' => [],
+    // Expose Content-Disposition so cross-origin JS (front.twindix) can read the
+    // server-chosen report filename ("Academic Finder - Name - code - date.pdf")
+    // from the report-pdf download response instead of hardcoding its own name.
+    'exposed_headers' => ['Content-Disposition'],
     'max_age' => 0,
     'supports_credentials' => false,
 ];
