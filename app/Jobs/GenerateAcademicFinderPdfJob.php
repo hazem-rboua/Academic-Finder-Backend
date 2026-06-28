@@ -114,11 +114,16 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                ->format('A4')
                ->margins(0, 0, 0, 0)
                ->addChromiumArguments([
-                   '--disable-dev-shm-usage',
-                   '--disable-gpu',
-                   '--no-zygote',
-                   '--single-process',
-                   '--disable-setuid-sandbox',
+                   // NOTE: Browsershot prepends "--" itself. Passing args WITH "--"
+                   // produces "----single-process" which Chrome ignores, so on
+                   // nproc-limited shared hosting Chrome fails to launch
+                   // (pthread_create: Resource temporarily unavailable). Keep these
+                   // WITHOUT the leading "--". See commit 53a7b48.
+                   'disable-dev-shm-usage',
+                   'disable-gpu',
+                   'no-zygote',
+                   'single-process',
+                   'disable-setuid-sandbox',
                ])
                ->savePdf($pdfPath);
 
