@@ -107,6 +107,40 @@ class ExamProcessingJob extends Model
     }
 
     /**
+     * Build the human-readable report name used for BOTH the report title
+     * and the downloaded file name, so they always match.
+     * Format: "Academic Finder - First Second - code - date".
+     *
+     * @return string
+     */
+    public function reportName(): string
+    {
+        $parts = preg_split('/\s+/', trim((string) $this->user_name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $name  = trim(implode(' ', array_slice($parts, 0, 2)));
+        if ($name === '') {
+            $name = 'Candidate';
+        }
+
+        $when = $this->completed_at ?? $this->created_at;
+        $date = $when ? $when->format('Y-m-d') : now()->format('Y-m-d');
+
+        return 'Academic Finder - ' . $name . ' - ' . $this->exam_code . ' - ' . $date;
+    }
+
+    /**
+     * File-system-safe version of reportName() with the .pdf extension.
+     *
+     * @return string
+     */
+    public function reportFileName(): string
+    {
+        $safe = preg_replace('/[\/\\\\:*?"<>|]+/', '', $this->reportName());
+        $safe = trim(preg_replace('/\s+/', ' ', (string) $safe));
+
+        return $safe . '.pdf';
+    }
+
+    /**
      * Scope a query to only include completed jobs.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query

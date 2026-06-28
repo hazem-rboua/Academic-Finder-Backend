@@ -134,7 +134,12 @@ class AcademicFinderPdfController extends Controller
             return response()->json(['success' => false, 'message' => 'PDF not ready yet'], 404);
         }
 
-        $filename = 'academic-finder-report-' . $examCode . '-' . $lang . '.pdf';
+        // Use the report name ("Academic Finder - First Second - code - date.pdf"),
+        // falling back to the legacy name if no tracking record exists.
+        $job = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
+        $filename = $job
+            ? $job->reportFileName()
+            : 'academic-finder-report-' . $examCode . '-' . $lang . '.pdf';
 
         return response()->download($fullPath, $filename, [
             'Content-Type'        => 'application/pdf',

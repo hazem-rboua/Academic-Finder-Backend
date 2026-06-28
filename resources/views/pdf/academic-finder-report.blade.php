@@ -12,11 +12,17 @@
     $issuedLabel = $isArabic ? 'تاريخ الإصدار' : 'Issued';
     $issued = \Illuminate\Support\Carbon::now()
         ->locale($isArabic ? 'ar' : 'en')->isoFormat('D MMMM YYYY');
+    // Report title — same string as the downloaded file name (set from the job).
+    $reportTitle = $reportTitle ?? $title;
+    $disclaimer = $isArabic
+        ? 'هذا التقرير مُولّد بناءً على إجاباتك وبواسطة الذكاء الاصطناعي، وتعتمد دقّته على مدى صدق إجاباتك. متوسط دقة الذكاء الاصطناعي 95%.'
+        : 'This report is generated based on your answers and AI generation; its accuracy depends on the honesty of your answers. The average AI accuracy is 95%.';
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $isArabic ? 'ar' : 'en' }}" dir="{{ $isArabic ? 'rtl' : 'ltr' }}">
 <head>
 <meta charset="utf-8">
+<title>{{ $reportTitle }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -42,6 +48,7 @@
     .pdf-root .cover-eyebrow { font-size:11px; letter-spacing:.4em; text-transform:uppercase; color:rgba(255,255,255,.7); margin-bottom:18px; display:flex; align-items:center; gap:14px; }
     .pdf-root .cover-eyebrow-line { display:inline-block; width:36px; height:1px; background:#D4AF6A; }
     .pdf-root .cover-title { font-size:64px; line-height:1; font-weight:800; letter-spacing:-.025em; color:#FFF; max-width:90%; }
+    .pdf-root .cover-title.is-name { font-size:40px; line-height:1.12; max-width:100%; word-break:break-word; }
     .pdf-root .cover-rule { margin-top:28px; height:3px; width:96px; background:linear-gradient(90deg,#D4AF6A 0%,#EBD9A8 100%); border-radius:2px; }
     .pdf-root .cover-bottom { display:flex; gap:32px; position:relative; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
     .pdf-root .meta { flex:1; display:flex; flex-direction:column; gap:6px; }
@@ -62,6 +69,9 @@
     .pdf-root .card-body-wrap { position:relative; padding-{{ $startEdge }}:70px; }
     .pdf-root .card-body-accent { position:absolute; top:9px; {{ $startEdge }}:0; width:52px; height:1px; background:linear-gradient({{ $accentDirection }},#D4AF6A 0%, rgba(212,175,106,0) 100%); }
     .pdf-root .card-body { font-size:13px; line-height:1.75; color:#2D3D5C; text-align:justify; white-space:pre-line; }
+    .pdf-root .disclaimer { margin-top:18px; padding:14px 18px; border:1px solid #E2E8F2; border-radius:12px;
+        background:#F7F9FC; font-size:11px; line-height:1.7; color:#5A6B86; }
+    .pdf-root .disclaimer strong { color:#0E1B3A; font-weight:600; }
 </style>
 </head>
 <body>
@@ -74,7 +84,7 @@
         </div>
         <div class="cover-mid">
             <div class="cover-eyebrow"><span class="cover-eyebrow-line"></span>{{ $companyName }}</div>
-            <h1 class="cover-title">{{ $title }}</h1>
+            <h1 class="cover-title is-name">{{ $reportTitle }}</h1>
             <div class="cover-rule"></div>
         </div>
         <div class="cover-bottom">
@@ -104,6 +114,9 @@
                 </div>
             </article>
         @endforeach
+        <div class="disclaimer">
+            <strong>{{ $isArabic ? 'تنويه:' : 'Disclaimer:' }}</strong> {{ $disclaimer }}
+        </div>
     </section>
 </div>
 </body>

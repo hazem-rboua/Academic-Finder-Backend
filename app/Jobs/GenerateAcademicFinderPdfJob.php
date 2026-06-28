@@ -93,6 +93,7 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                 'lang'        => $lang,
                 'jobs'        => $jobs,
                 'logoDataUri' => $this->logoDataUri(),
+                'reportTitle' => $job->reportName(),
             ])->render();
 
             @mkdir(dirname($pdfPath), 0775, true);
