@@ -97,6 +97,13 @@ class AcademicFinderPdfController extends Controller
 
         $job = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
 
+        // ADDITIVE: trust the job's actually-saved file (pdf_ready/pdf_path) even when the
+        // request's lang/env differ from what generation used (e.g. the frontend polls
+        // report-status without the lang it passed to generate). Prevents a stuck "processing".
+        if (!$fileReady && $job && $job->pdf_ready && $job->pdf_path && file_exists($job->pdf_path)) {
+            $fileReady = true;
+        }
+
         if (!$fileReady && !$job) {
             return response()->json([
                 'success' => true,
@@ -128,7 +135,15 @@ class AcademicFinderPdfController extends Controller
 
         $lang = in_array($request->query('lang'), ['ar', 'en']) ? $request->query('lang') : 'en';
         $env  = $this->resolveEnv($request);
+        $job  = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
+
         $fullPath = $this->pdfPath($examCode, $lang, $env);
+
+        // ADDITIVE: fall back to the job's actually-saved file if the path computed from the
+        // request's lang/env doesn't exist (frontend may omit/mismatch lang on download).
+        if (!file_exists($fullPath) && $job && $job->pdf_ready && $job->pdf_path && file_exists($job->pdf_path)) {
+            $fullPath = $job->pdf_path;
+        }
 
         if (!file_exists($fullPath)) {
             return response()->json(['success' => false, 'message' => 'PDF not ready yet'], 404);
@@ -136,7 +151,6 @@ class AcademicFinderPdfController extends Controller
 
         // Use the report name ("Academic Finder - First Second - code - date.pdf"),
         // falling back to the legacy name if no tracking record exists.
-        $job = ExamProcessingJob::where('exam_code', $examCode)->latest()->first();
         $filename = $job
             ? $job->reportFileName()
             : 'academic-finder-report-' . $examCode . '-' . $lang . '.pdf';
