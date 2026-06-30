@@ -50,7 +50,7 @@
     .pdf-root .cover-title { font-size:64px; line-height:1; font-weight:800; letter-spacing:-.025em; color:#FFF; max-width:90%; }
     .pdf-root .cover-title.is-name { font-size:40px; line-height:1.12; max-width:100%; word-break:break-word; }
     .pdf-root .cover-rule { margin-top:28px; height:3px; width:96px; background:linear-gradient(90deg,#D4AF6A 0%,#EBD9A8 100%); border-radius:2px; }
-    .pdf-root .cover-bottom { display:flex; gap:32px; position:relative; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
+    .pdf-root .cover-bottom { display:flex; gap:32px; position:absolute; bottom:80px; left:68px; right:68px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
     .pdf-root .meta { flex:1; display:flex; flex-direction:column; gap:6px; }
     .pdf-root .meta-label { font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.65); font-weight:500; }
     .pdf-root .meta-value { font-size:16px; font-weight:600; color:#FFF; letter-spacing:-.01em; }
