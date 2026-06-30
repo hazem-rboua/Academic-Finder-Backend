@@ -34,7 +34,7 @@
         color: #0E1B3A; background: #FFFFFF; font-size: 14px; line-height: 1.5; font-weight: 400;
         text-align: {{ $isArabic ? 'right' : 'left' }}; direction: {{ $isArabic ? 'rtl' : 'ltr' }}; width: {{ $W }}px; }
     .pdf-root .page { width: {{ $W }}px; position: relative; overflow: hidden; background: #FFFFFF; }
-    .pdf-root .cover { height: 1120px; break-after: page; page-break-after: always;
+    .pdf-root .cover { height: 1040px; break-after: page; page-break-after: always;
         background: radial-gradient(circle at 80% 0%, rgba(212,175,106,.22) 0%, rgba(212,175,106,0) 55%),
             radial-gradient(circle at 0% 100%, rgba(43,111,224,.5) 0%, rgba(43,111,224,0) 55%),
             linear-gradient(135deg,#001A82 0%,#0025BA 45%,#1356BC 100%);
@@ -50,7 +50,7 @@
     .pdf-root .cover-title { font-size:64px; line-height:1; font-weight:800; letter-spacing:-.025em; color:#FFF; max-width:90%; }
     .pdf-root .cover-title.is-name { font-size:40px; line-height:1.12; max-width:100%; word-break:break-word; }
     .pdf-root .cover-rule { margin-top:28px; height:3px; width:96px; background:linear-gradient(90deg,#D4AF6A 0%,#EBD9A8 100%); border-radius:2px; }
-    .pdf-root .cover-bottom { display:flex; gap:32px; position:absolute; bottom:80px; left:68px; right:68px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
+    .pdf-root .cover-bottom { display:flex; gap:32px; position:absolute; bottom:40px; left:68px; right:68px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
     .pdf-root .meta { flex:1; display:flex; flex-direction:column; gap:6px; }
     .pdf-root .meta-label { font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.65); font-weight:500; }
     .pdf-root .meta-value { font-size:16px; font-weight:600; color:#FFF; letter-spacing:-.01em; }
