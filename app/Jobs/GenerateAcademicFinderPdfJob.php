@@ -86,46 +86,45 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                 return ['jobTitle' => $title, 'justification' => $body];
             }, $rawJobs);
 
-            // Render Blade → HTML → PDF
-            $html = view('pdf.academic-finder-report', [
+            // Render the cover and the content as SEPARATE one-purpose PDFs, then merge them
+            // with Ghostscript. WHY: Chrome's printToPDF leaves a ~74px unprintable bottom
+            // strip on normal flow content, so a single-render full-bleed cover bleeds onto
+            // page 2. Rendering the cover on its own (a position:fixed background fills the
+            // whole physical page, and there is no page 2 to bleed onto) and the white content
+            // separately, then concatenating, yields a fully-blue cover + clean white content.
+            @mkdir(dirname($pdfPath), 0775, true);
+            $base       = dirname($pdfPath) . '/' . $this->examCode . '-' . $lang . ($isTest ? '.test' : '');
+            $coverPdf   = $base . '.cover.pdf';
+            $contentPdf = $base . '.content.pdf';
+
+            $viewData = [
                 'code'        => $this->examCode,
                 'userName'    => $job->user_name ?: '—',
                 'lang'        => $lang,
                 'jobs'        => $jobs,
                 'logoDataUri' => $this->logoDataUri(),
                 'reportTitle' => $job->reportName(),
-            ])->render();
+            ];
 
-            @mkdir(dirname($pdfPath), 0775, true);
+            $this->renderHtmlToPdf(view('pdf.academic-finder-report', $viewData + ['part' => 'cover'])->render(),   $coverPdf);
+            $this->renderHtmlToPdf(view('pdf.academic-finder-report', $viewData + ['part' => 'content'])->render(), $contentPdf);
 
-            $bs = Browsershot::html($html);
+            // Merge with Ghostscript (present on the host; no PHP PDF library required).
+            // Use Symfony Process (proc_open) — some shared hosts disable exec().
+            $gs = config('services.ghostscript.bin', 'gs');
+            $process = new \Symfony\Component\Process\Process([
+                $gs, '-dBATCH', '-dNOPAUSE', '-q', '-sDEVICE=pdfwrite', '-dAutoRotatePages=/None',
+                '-sOutputFile=' . $pdfPath, $coverPdf, $contentPdf,
+            ]);
+            $process->setTimeout(60);
+            $process->run();
 
-            if ($node   = config('services.browsershot.node_binary'))  { $bs->setNodeBinary($node); }
-            if ($npm    = config('services.browsershot.npm_binary'))    { $bs->setNpmBinary($npm); }
-            if ($chrome = config('services.browsershot.chrome_path'))   { $bs->setChromePath($chrome); }
+            if (!$process->isSuccessful() || !file_exists($pdfPath)) {
+                throw new \RuntimeException('Ghostscript merge failed: ' . $process->getErrorOutput() . ' ' . $process->getOutput());
+            }
 
-            // Force Symfony Process to use fork/exec instead of posix_spawn (blocked on cPanel/CloudLinux)
-            putenv('SYMFONY_PROCESS_POSIX_SPAWN=0');
-
-            $bs->noSandbox()
-               ->showBackground()
-               ->waitUntilNetworkIdle()
-               ->timeout(60)
-               ->format('A4')
-               ->margins(0, 0, 0, 0)
-               ->addChromiumArguments([
-                   // NOTE: Browsershot prepends "--" itself. Passing args WITH "--"
-                   // produces "----single-process" which Chrome ignores, so on
-                   // nproc-limited shared hosting Chrome fails to launch
-                   // (pthread_create: Resource temporarily unavailable). Keep these
-                   // WITHOUT the leading "--". See commit 53a7b48.
-                   'disable-dev-shm-usage',
-                   'disable-gpu',
-                   'no-zygote',
-                   'single-process',
-                   'disable-setuid-sandbox',
-               ])
-               ->savePdf($pdfPath);
+            @unlink($coverPdf);
+            @unlink($contentPdf);
 
             $job->update([
                 'pdf_ready' => true,
@@ -142,6 +141,38 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
             ]);
             // No rethrow — queue stays clean, status shows failed via DB
         }
+    }
+
+    /**
+     * Render a single HTML string to a PDF file via Browsershot/Chrome
+     * (same hardened config used for the shared-hosting Chrome).
+     */
+    private function renderHtmlToPdf(string $html, string $path): void
+    {
+        $bs = Browsershot::html($html);
+
+        if ($node   = config('services.browsershot.node_binary'))  { $bs->setNodeBinary($node); }
+        if ($npm    = config('services.browsershot.npm_binary'))    { $bs->setNpmBinary($npm); }
+        if ($chrome = config('services.browsershot.chrome_path'))   { $bs->setChromePath($chrome); }
+
+        // Force Symfony Process to use fork/exec instead of posix_spawn (blocked on cPanel/CloudLinux)
+        putenv('SYMFONY_PROCESS_POSIX_SPAWN=0');
+
+        $bs->noSandbox()
+           ->showBackground()
+           ->waitUntilNetworkIdle()
+           ->timeout(60)
+           ->format('A4')
+           ->margins(0, 0, 0, 0)
+           ->addChromiumArguments([
+               // Browsershot prepends "--" itself; keep these WITHOUT it (see commit 53a7b48).
+               'disable-dev-shm-usage',
+               'disable-gpu',
+               'no-zygote',
+               'single-process',
+               'disable-setuid-sandbox',
+           ])
+           ->savePdf($path);
     }
 
     private function logoDataUri(): string

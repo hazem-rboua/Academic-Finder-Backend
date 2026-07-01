@@ -14,6 +14,9 @@
         ->locale($isArabic ? 'ar' : 'en')->isoFormat('D MMMM YYYY');
     // Report title — same string as the downloaded file name (set from the job).
     $reportTitle = $reportTitle ?? $title;
+    // Which part to render: 'cover' (full-bleed cover only), 'content' (white content only),
+    // or 'all' (both — legacy). The job renders cover+content separately then merges with gs.
+    $part = $part ?? 'all';
     $disclaimer = $isArabic
         ? 'هذا التقرير مُولّد بناءً على إجاباتك وبواسطة الذكاء الاصطناعي، وتعتمد دقّته على مدى صدق إجاباتك. متوسط دقة الذكاء الاصطناعي 95%.'
         : 'This report is generated based on your answers and AI generation; its accuracy depends on the honesty of your answers. The average AI accuracy is 95%.';
@@ -34,10 +37,15 @@
         color: #0E1B3A; background: #FFFFFF; font-size: 14px; line-height: 1.5; font-weight: 400;
         text-align: {{ $isArabic ? 'right' : 'left' }}; direction: {{ $isArabic ? 'rtl' : 'ltr' }}; width: {{ $W }}px; }
     .pdf-root .page { width: {{ $W }}px; position: relative; overflow: hidden; background: #FFFFFF; }
-    .pdf-root .cover { height: 1040px; break-after: page; page-break-after: always;
+    /* Full-bleed cover background: position:fixed fills the whole physical page (it bypasses
+       Chrome's ~74px unprintable bottom strip). Only present in the standalone cover render,
+       which is a single page — so it never bleeds onto a page 2. */
+    .pdf-root .cover-bg { position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%;
         background: radial-gradient(circle at 80% 0%, rgba(212,175,106,.22) 0%, rgba(212,175,106,0) 55%),
             radial-gradient(circle at 0% 100%, rgba(43,111,224,.5) 0%, rgba(43,111,224,0) 55%),
             linear-gradient(135deg,#001A82 0%,#0025BA 45%,#1356BC 100%);
+        z-index:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .pdf-root .cover { height: 1040px; position:relative; z-index:1;
         color:#FFF; display:flex; flex-direction:column; padding:80px 68px; }
     .pdf-root .cover-orb { position:absolute; {{ $endEdge }}:-440px; top:-180px; width:980px; height:980px;
         border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 60%); }
@@ -50,7 +58,7 @@
     .pdf-root .cover-title { font-size:64px; line-height:1; font-weight:800; letter-spacing:-.025em; color:#FFF; max-width:90%; }
     .pdf-root .cover-title.is-name { font-size:40px; line-height:1.12; max-width:100%; word-break:break-word; }
     .pdf-root .cover-rule { margin-top:28px; height:3px; width:96px; background:linear-gradient(90deg,#D4AF6A 0%,#EBD9A8 100%); border-radius:2px; }
-    .pdf-root .cover-foot { position:absolute; bottom:40px; left:68px; right:68px; z-index:2; }
+    .pdf-root .cover-foot { position:fixed; bottom:40px; left:68px; right:68px; z-index:2; }
     .pdf-root .cover-disclaimer { font-size:11px; line-height:1.7; color:rgba(255,255,255,.82); margin-bottom:22px; }
     .pdf-root .cover-disclaimer strong { color:#FFF; font-weight:600; }
     .pdf-root .cover-bottom { display:flex; gap:32px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
@@ -79,6 +87,8 @@
 </head>
 <body>
 <div class="pdf-root">
+    @if($part !== 'content')
+    <div class="cover-bg"></div>
     <section class="page cover">
         <span class="cover-orb"></span>
         <div class="cover-top">
@@ -99,6 +109,8 @@
             </div>
         </div>
     </section>
+    @endif
+    @if($part !== 'cover')
     <section class="page content">
         <div class="content-header">
             @if($logoDataUri)<img src="{{ $logoDataUri }}" alt="{{ $companyName }}" />@endif
@@ -121,6 +133,7 @@
             </article>
         @endforeach
     </section>
+    @endif
 </div>
 </body>
 </html>
