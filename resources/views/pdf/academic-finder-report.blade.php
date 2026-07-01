@@ -45,7 +45,7 @@
             radial-gradient(circle at 0% 100%, rgba(43,111,224,.5) 0%, rgba(43,111,224,0) 55%),
             linear-gradient(135deg,#001A82 0%,#0025BA 45%,#1356BC 100%);
         z-index:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .pdf-root .cover { height: 1040px; position:relative; z-index:1;
+    .pdf-root .cover { height: 1040px; position:relative; z-index:1; background:transparent;
         color:#FFF; display:flex; flex-direction:column; padding:80px 68px; }
     .pdf-root .cover-orb { position:absolute; {{ $endEdge }}:-440px; top:-180px; width:980px; height:980px;
         border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 60%); }
