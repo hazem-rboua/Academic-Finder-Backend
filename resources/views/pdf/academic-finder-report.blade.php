@@ -34,7 +34,7 @@
         color: #0E1B3A; background: #FFFFFF; font-size: 14px; line-height: 1.5; font-weight: 400;
         text-align: {{ $isArabic ? 'right' : 'left' }}; direction: {{ $isArabic ? 'rtl' : 'ltr' }}; width: {{ $W }}px; }
     .pdf-root .page { width: {{ $W }}px; position: relative; overflow: hidden; background: #FFFFFF; }
-    .pdf-root .cover { height: 1040px; break-after: page; page-break-after: always;
+    .pdf-root .cover { height: 1120px; break-after: page; page-break-after: always;
         background: radial-gradient(circle at 80% 0%, rgba(212,175,106,.22) 0%, rgba(212,175,106,0) 55%),
             radial-gradient(circle at 0% 100%, rgba(43,111,224,.5) 0%, rgba(43,111,224,0) 55%),
             linear-gradient(135deg,#001A82 0%,#0025BA 45%,#1356BC 100%);
@@ -50,11 +50,14 @@
     .pdf-root .cover-title { font-size:64px; line-height:1; font-weight:800; letter-spacing:-.025em; color:#FFF; max-width:90%; }
     .pdf-root .cover-title.is-name { font-size:40px; line-height:1.12; max-width:100%; word-break:break-word; }
     .pdf-root .cover-rule { margin-top:28px; height:3px; width:96px; background:linear-gradient(90deg,#D4AF6A 0%,#EBD9A8 100%); border-radius:2px; }
-    .pdf-root .cover-bottom { display:flex; gap:32px; position:absolute; bottom:40px; left:68px; right:68px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
+    .pdf-root .cover-foot { position:absolute; bottom:40px; left:68px; right:68px; z-index:2; }
+    .pdf-root .cover-disclaimer { font-size:11px; line-height:1.7; color:rgba(255,255,255,.82); margin-bottom:22px; }
+    .pdf-root .cover-disclaimer strong { color:#FFF; font-weight:600; }
+    .pdf-root .cover-bottom { display:flex; gap:32px; z-index:2; padding-top:68px; border-top:1px solid rgba(255,255,255,.2); }
     .pdf-root .meta { flex:1; display:flex; flex-direction:column; gap:6px; }
     .pdf-root .meta-label { font-size:10px; letter-spacing:.28em; text-transform:uppercase; color:rgba(255,255,255,.65); font-weight:500; }
     .pdf-root .meta-value { font-size:16px; font-weight:600; color:#FFF; letter-spacing:-.01em; }
-    .pdf-root .meta-value.code { font-family:"JetBrains Mono","Menlo","Courier New",monospace; font-size:14px; letter-spacing:.08em; }
+    .pdf-root .meta-value.code { font-family:"Inter","Noto Sans Arabic","Segoe UI",system-ui,sans-serif; font-size:14px; letter-spacing:.08em; }
     .pdf-root .content { padding:68px 60px 90px; background:#FFF; }
     .pdf-root .content-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:14px; margin-bottom:22px; border-bottom:1px solid #E2E8F2; }
     .pdf-root .content-header img { height:28px; width:auto; }
@@ -64,7 +67,7 @@
     .pdf-root .card-stripe { position:absolute; top:0; {{ $startEdge }}:0; bottom:0; width:4px; background:linear-gradient(180deg,#001A82 0%,#1356BC 50%,#D4AF6A 100%); }
     .pdf-root .card-glow { position:absolute; top:-40px; {{ $endEdge }}:-40px; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, rgba(19,86,188,.07) 0%, rgba(19,86,188,0) 70%); }
     .pdf-root .card-head { break-inside:avoid; display:flex; align-items:center; gap:18px; margin-bottom:14px; position:relative; z-index:1; }
-    .pdf-root .card-num { flex-shrink:0; width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,#1356BC 0%,#001A82 100%); color:#FFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; letter-spacing:.04em; font-family:"JetBrains Mono","Menlo","Courier New",monospace; box-shadow:0 8px 18px -8px rgba(19,86,188,.55); }
+    .pdf-root .card-num { flex-shrink:0; width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,#1356BC 0%,#001A82 100%); color:#FFF; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; letter-spacing:.04em; font-family:"Inter","Noto Sans Arabic","Segoe UI",system-ui,sans-serif; box-shadow:0 8px 18px -8px rgba(19,86,188,.55); }
     .pdf-root .card-title { font-size:22px; line-height:1.2; font-weight:700; color:#0E1B3A; letter-spacing:-.015em; flex:1; }
     .pdf-root .card-body-wrap { position:relative; padding-{{ $startEdge }}:70px; }
     .pdf-root .card-body-accent { position:absolute; top:9px; {{ $startEdge }}:0; width:52px; height:1px; background:linear-gradient({{ $accentDirection }},#D4AF6A 0%, rgba(212,175,106,0) 100%); }
@@ -87,10 +90,13 @@
             <h1 class="cover-title is-name">{{ $reportTitle }}</h1>
             <div class="cover-rule"></div>
         </div>
-        <div class="cover-bottom">
-            <div class="meta"><span class="meta-label">{{ $recipientLabel }}</span><span class="meta-value">{{ $userName }}</span></div>
-            <div class="meta"><span class="meta-label">{{ $codeLabel }}</span><span class="meta-value code">{{ $code }}</span></div>
-            <div class="meta"><span class="meta-label">{{ $issuedLabel }}</span><span class="meta-value">{{ $issued }}</span></div>
+        <div class="cover-foot">
+            <p class="cover-disclaimer"><strong>{{ $isArabic ? 'تنويه:' : 'Disclaimer:' }}</strong> {{ $disclaimer }}</p>
+            <div class="cover-bottom">
+                <div class="meta"><span class="meta-label">{{ $recipientLabel }}</span><span class="meta-value">{{ $userName }}</span></div>
+                <div class="meta"><span class="meta-label">{{ $codeLabel }}</span><span class="meta-value code">{{ $code }}</span></div>
+                <div class="meta"><span class="meta-label">{{ $issuedLabel }}</span><span class="meta-value">{{ $issued }}</span></div>
+            </div>
         </div>
     </section>
     <section class="page content">
@@ -114,9 +120,6 @@
                 </div>
             </article>
         @endforeach
-        <div class="disclaimer">
-            <strong>{{ $isArabic ? 'تنويه:' : 'Disclaimer:' }}</strong> {{ $disclaimer }}
-        </div>
     </section>
 </div>
 </body>
