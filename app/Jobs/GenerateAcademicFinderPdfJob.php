@@ -113,15 +113,6 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
                ->timeout(60)
                ->format('A4')
                ->margins(0, 0, 0, 0)
-               // ADDITIVE: force Chrome to honor @page{size:A4;margin:0} so the printable
-               // area is the full 1122.5px (was leaving a ~76px phantom bottom margin on
-               // every page, which clipped the full-bleed cover and left white strips).
-               // Browsershot has no preferCssPageSize() helper — its __call forwards to the
-               // image-manipulations object and would fatal. The option name must match
-               // Puppeteer's page.pdf() key exactly ("preferCSSPageSize"); it flows straight
-               // through to page.pdf(options). When true, Puppeteer uses the CSS @page size
-               // and ignores the format()/margins() options above.
-               ->setOption('preferCSSPageSize', true)
                ->addChromiumArguments([
                    // NOTE: Browsershot prepends "--" itself. Passing args WITH "--"
                    // produces "----single-process" which Chrome ignores, so on
