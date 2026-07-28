@@ -24,13 +24,18 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
     // MAX_ATTEMPTS, otherwise the worker's pre-handle max-attempts check would kill the
     // last attempt before handle() runs and the diagnostic would be lost. This property
     // also overrides the CLI `--tries=1` in process-queue.php (job property wins).
-    public $tries   = 4;
+    public $tries   = 5;
 
     /** Total generation attempts (initial + transient retries). */
-    private const MAX_ATTEMPTS = 3;
+    private const MAX_ATTEMPTS = 4;
 
-    /** Backoff in seconds between transient retries: ~60s after attempt 1, ~300s after attempt 2. */
-    private const RETRY_BACKOFF = [60, 300];
+    /**
+     * Backoff in seconds between transient retries: ~5m after attempt 1, ~30m
+     * after attempt 2, ~60m after attempt 3 (~95min total window). Sized for the
+     * real failure mode — upstream "No API keys available"/quota exhaustion, which
+     * persists for hours, not seconds. A shorter window died inside the outage.
+     */
+    private const RETRY_BACKOFF = [300, 1800, 3600];
 
     public function __construct(public string $examCode, public ?string $lang = null, public ?string $env = null) {}
 
