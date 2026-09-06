@@ -380,5 +380,10 @@ class ExamResultService
         return $status;
     }
 
+    public function processDirectPayload(array $examResults, string $language = 'en'): ?array
+    {
+        return $this->aiRecommendationService->getRecommendations($examResults, $language);
+    }
+
 }
 

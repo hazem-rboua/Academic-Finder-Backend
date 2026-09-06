@@ -26,6 +26,7 @@ Route::prefix('invitations')->group(function () {
 // Exam results routes (public)
 Route::prefix('exam-results')->group(function () {
     Route::post('/process', [ExamResultController::class, 'process']);
+    Route::post('/process-direct', [ExamResultController::class, 'processDirect']);
     Route::get('/status/{jobId}', [ExamResultController::class, 'status']);
     // ADDITIVE 2026-06-16 — Academic Finder PDF generation
     Route::post('/generate', [AcademicFinderPdfController::class, 'generate']);

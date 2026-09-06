@@ -292,5 +292,26 @@ class ExamResultController extends Controller
             ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
             ->header('Pragma', 'no-cache');
     }
+
+    public function processDirect(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $request->validate([
+            'selected_branches'  => 'required|array',
+            'environment_status' => 'required|array',
+            'language'           => 'nullable|string|in:en,ar',
+        ]);
+
+        $examResults = [
+            'selected_branches'  => $request->selected_branches,
+            'environment_status' => $request->environment_status,
+        ];
+
+        $result = $this->examResultService->processDirectPayload(
+            $examResults,
+            $request->input('language', 'en')
+        );
+
+        return response()->json(['data' => $result]);
+    }
 }
 
