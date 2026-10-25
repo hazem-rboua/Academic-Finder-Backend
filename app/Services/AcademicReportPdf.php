@@ -73,8 +73,6 @@ class AcademicReportPdf
                 'disable-dev-shm-usage',
                 'disable-gpu',
                 'disable-crash-reporter',
-                'no-zygote',
-                'single-process',
                 'disable-setuid-sandbox',
             ])
             ->savePdf($path);
