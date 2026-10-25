@@ -24,18 +24,24 @@ Route::prefix('invitations')->group(function () {
     Route::post('/accept/{token}', [InvitationController::class, 'accept']);
 });
 
-// Academic Finder PDF for the Twindix API (same report design as the Twindix API)
-Route::post('/generate-pdf', [PdfController::class, 'generate']);
+// Trusted callers only (App\Http\Middleware\TrustedCaller): the Twindix API with its
+// X-Service-Key, or a user logged in to this app.
+Route::middleware('trusted')->group(function () {
+    // Academic Finder PDF for the Twindix API (same report design as the Twindix API)
+    Route::post('/generate-pdf', [PdfController::class, 'generate']);
+    // A PDF made by generate-pdf; deleted once downloaded.
+    Route::get('/reports/{file}', [PdfController::class, 'download'])->where('file', '[A-Za-z0-9_-]+\.pdf');
 
-// Exam results routes (public)
-Route::prefix('exam-results')->group(function () {
-    Route::post('/process', [ExamResultController::class, 'process']);
-    Route::post('/process-direct', [ExamResultController::class, 'processDirect']);
-    Route::get('/status/{jobId}', [ExamResultController::class, 'status']);
-    // ADDITIVE 2026-06-16 — Academic Finder PDF generation
-    Route::post('/generate', [AcademicFinderPdfController::class, 'generate']);
-    Route::get('/report-status', [AcademicFinderPdfController::class, 'reportStatus']);
-    Route::get('/report-pdf', [AcademicFinderPdfController::class, 'reportPdf']);
+    // Exam results routes
+    Route::prefix('exam-results')->group(function () {
+        Route::post('/process', [ExamResultController::class, 'process']);
+        Route::post('/process-direct', [ExamResultController::class, 'processDirect']);
+        Route::get('/status/{jobId}', [ExamResultController::class, 'status']);
+        // ADDITIVE 2026-06-16 — Academic Finder PDF generation
+        Route::post('/generate', [AcademicFinderPdfController::class, 'generate']);
+        Route::get('/report-status', [AcademicFinderPdfController::class, 'reportStatus']);
+        Route::get('/report-pdf', [AcademicFinderPdfController::class, 'reportPdf']);
+    });
 });
 
 // Protected routes

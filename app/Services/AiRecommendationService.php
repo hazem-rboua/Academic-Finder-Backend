@@ -49,10 +49,12 @@ class AiRecommendationService
 
         try {
             $response = Http::timeout($timeout)
-                ->withHeaders([
+                ->withHeaders(array_filter([
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                ])
+                    // Our key for the AI service, when configured (AI_API_KEY).
+                    'X-API-Key' => config('services.ai_api.key'),
+                ]))
                 ->retry($retryTimes, function ($attempt) {
                     // Exponential backoff: 1s, 2s, 4s
                     return 1000 * pow(2, $attempt - 1);

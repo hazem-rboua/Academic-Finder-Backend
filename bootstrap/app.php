@@ -17,11 +17,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
         ]);
 
-        $middleware->throttleApi('60,1');
+        // Named limiter "api" (AppServiceProvider): no limit for the Twindix API's service key.
+        $middleware->throttleApi();
         
         $middleware->alias([
             'ability' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
             'abilities' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'trusted' => \App\Http\Middleware\TrustedCaller::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

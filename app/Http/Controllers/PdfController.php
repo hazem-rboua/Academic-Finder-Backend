@@ -31,7 +31,8 @@ class PdfController extends Controller
         $lang     = $request->input('lang');
         $examCode = (string) $request->input('exam_code');
         $filename = 'academic-' . preg_replace('/[^A-Za-z0-9_-]/', '', $examCode) . '-' . $lang . '-' . Str::random(8) . '.pdf';
-        $path     = public_path('reports/' . $filename);
+        // Private storage, not public/: only GET /api/reports/{file} (trusted) hands it out.
+        $path     = storage_path('app/generated/' . $filename);
 
         try {
             $pdf->render(
@@ -51,7 +52,18 @@ class PdfController extends Controller
         return response()->json([
             'success' => true,
             'path'    => $path,
-            'url'     => url('reports/' . $filename),
+            'url'     => url('api/reports/' . $filename),
         ]);
+    }
+
+    /** GET /api/reports/{file} — one generated PDF, deleted after it is sent. */
+    public function download(string $file)
+    {
+        $path = storage_path('app/generated/' . basename($file));
+        if (! is_file($path)) {
+            return response()->json(['success' => false, 'message' => 'Report not found.'], 404);
+        }
+
+        return response()->download($path, $file, ['Content-Type' => 'application/pdf'])->deleteFileAfterSend(true);
     }
 }

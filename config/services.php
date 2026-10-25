@@ -50,6 +50,13 @@ return [
         'timeout' => (int) env('AI_API_TIMEOUT', 60),
         'retry_times' => (int) env('AI_API_RETRY_TIMES', 3),
         'enabled' => env('AI_API_ENABLED', true),
+        // Sent as X-API-Key to the AI service when set (the AI service decides whether to require it).
+        'key' => env('AI_API_KEY'),
+    ],
+
+    'twindix' => [
+        // Shared secret the Twindix API sends as X-Service-Key (App\Http\Middleware\TrustedCaller).
+        'key' => env('TWINDIX_SERVICE_KEY'),
     ],
 
 ];
