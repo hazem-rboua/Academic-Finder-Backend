@@ -58,8 +58,9 @@ class AcademicReportPdf
 
         // posix_spawn is blocked on cPanel/CloudLinux; harmless elsewhere.
         putenv('SYMFONY_PROCESS_POSIX_SPAWN=0');
-        // Chrome needs a writable home for its profile (as in Career-finder-bk).
-        if (! getenv('HOME')) {
+        // Chrome needs a writable home for its profile (as in Career-finder-bk). On the VPS the
+        // web user's HOME is /var/www, which it cannot write.
+        if (! is_writable((string) getenv('HOME'))) {
             putenv('HOME=/tmp');
         }
 
@@ -71,6 +72,7 @@ class AcademicReportPdf
             ->addChromiumArguments([
                 'disable-dev-shm-usage',
                 'disable-gpu',
+                'disable-crash-reporter',
                 'no-zygote',
                 'single-process',
                 'disable-setuid-sandbox',
