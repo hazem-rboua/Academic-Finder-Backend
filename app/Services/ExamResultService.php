@@ -35,7 +35,7 @@ class ExamResultService
      * @return array
      * @throws ExamProcessingException
      */
-    public function processExamResults(string $examCode): array
+    public function processExamResults(string $examCode, ?string $locale = null): array
     {
         // 1. Validate and get exam
         $examEnrollment = $this->validateAndGetExam($examCode);
@@ -49,8 +49,9 @@ class ExamResultService
         // 4. Process exam data
         $examResults = $this->processExamData($answers, $examEnrollment, $csvData);
 
-        // 5. Get AI recommendations
-        $locale = App::getLocale();
+        // 5. Get AI recommendations — in the report's language when given (a queue worker's
+        // App::getLocale() is always the default "en", so Arabic reports got English text).
+        $locale = $locale ?: App::getLocale();
         Log::info('Getting AI recommendations', [
             'exam_code' => $examCode,
             'locale' => $locale,

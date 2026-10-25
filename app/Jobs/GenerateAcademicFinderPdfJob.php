@@ -71,7 +71,8 @@ class GenerateAcademicFinderPdfJob implements ShouldQueue
 
             // Run pipeline: validate + algorithm + AI
             $examResultService->externalConnection = ($this->env === 'testing') ? 'external_api_test' : 'external_api';
-            $aiResult = $examResultService->processExamResults($this->examCode);
+            // Ask the AI in the report's own language (the Arabic PDF needs Arabic text).
+            $aiResult = $examResultService->processExamResults($this->examCode, $lang);
 
             Log::info('AF AI result shape', [
                 'top_keys'   => array_keys($aiResult ?? []),
