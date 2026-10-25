@@ -8,6 +8,7 @@ use App\Http\Controllers\Company\ProfileController;
 use App\Http\Controllers\ExamResultController;
 use App\Http\Controllers\AcademicFinderPdfController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\PdfController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -22,6 +23,9 @@ Route::prefix('invitations')->group(function () {
     Route::get('/validate/{token}', [InvitationController::class, 'validate']);
     Route::post('/accept/{token}', [InvitationController::class, 'accept']);
 });
+
+// Academic Finder PDF for the Twindix API (same report design as the Twindix API)
+Route::post('/generate-pdf', [PdfController::class, 'generate']);
 
 // Exam results routes (public)
 Route::prefix('exam-results')->group(function () {
