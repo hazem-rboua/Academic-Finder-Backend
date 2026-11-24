@@ -46,7 +46,8 @@ jobs:
         run: |
           set -euo pipefail
           install -d -m 700 ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          ssh-keygen -y -P '' -f ~/.ssh/deploy > /dev/null 2>&1 || { echo "::error::VPS_SSH_KEY is not a readable private key without a passphrase. Set it again from the key file."; exit 1; }
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
       - name: Upload and release
         env:
@@ -59,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ && "$DEPLOY_DB" =~ ^[A-Za-z0-9_]+$ && "$DEPLOY_PHP" =~ ^[A-Za-z0-9._/-]+$ ]]
-          OPTS=(-i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+          OPTS=(-i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o BatchMode=yes)
           ssh "${OPTS[@]}" -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "mkdir -p '$DEPLOY_PATH/incoming' '$DEPLOY_PATH/releases'"
           scp "${OPTS[@]}" -P "$VPS_PORT" "$RUNNER_TEMP/release.tar.gz" "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/incoming/$RELEASE_ID.tar.gz"
           scp "${OPTS[@]}" -P "$VPS_PORT" deploy/release.sh "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/release.sh"
